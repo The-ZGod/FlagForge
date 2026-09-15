@@ -1,0 +1,13 @@
+{
+  "name": "flagforge-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:demo": "cd demo && npm run dev",
+    "build:sdk": "cd sdk && npm run build",
+    "test:backend": "cd backend && npm test",
+    "test": "npm run test:backend"
+  }
+}
