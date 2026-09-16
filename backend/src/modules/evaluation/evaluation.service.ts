@@ -14,3 +14,18 @@ export function getRolloutBucket(
 
     return numericHash % 100;
 }
+
+export function isBucketInRollout(
+    bucket: number,
+    rolloutPercentage: number
+): boolean {
+    if (rolloutPercentage <= 0) {
+        return false;
+    }
+
+    if (rolloutPercentage >= 100) {
+        return true;
+    }
+
+    return bucket < rolloutPercentage;
+}

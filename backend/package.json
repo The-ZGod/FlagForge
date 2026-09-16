@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "node --watch dist/server.js"
@@ -14,8 +14,12 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@swc/core": "^1.16.2",
+    "@swc/jest": "^0.2.39",
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.5.1",
+    "jest": "^30.5.1",
     "prisma": "^6.19.3",
     "typescript": "^7.0.2"
   },

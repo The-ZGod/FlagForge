@@ -6,7 +6,8 @@
     "moduleResolution": "NodeNext",
     "target": "ES2022",
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "sourceMap": true,
     "strict": true,
@@ -21,6 +22,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts"
   ]
 }
