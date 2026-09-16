@@ -1,4 +1,5 @@
 import express from "express";
+import projectRoutes from "./modules/projects/project.routes.js";
 
 const app = express();
 
@@ -9,5 +10,7 @@ app.get("/", (_req, res) => {
         message: "FlagForge API is running",
     });
 });
+
+app.use("/api/projects", projectRoutes);
 
 export default app;
