@@ -9,9 +9,5 @@
     "build:sdk": "cd sdk && npm run build",
     "test:backend": "cd backend && npm test",
     "test": "npm run test:backend"
-  },
-  "dependencies": {
-    "@prisma/client": "^7.10.0",
-    "prisma": "^8.0.0-rc.15"
   }
 }
