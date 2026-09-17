@@ -3,6 +3,7 @@ import {
     createEnvironment,
     getEnvironmentsByProject,
     updateEnvironment,
+    deleteEnvironment,
 } from "./environment.service.js";
 
 export async function createEnvironmentHandler(
@@ -60,4 +61,22 @@ export async function updateEnvironmentHandler(
     );
 
     res.json(environment);
+}
+
+export async function deleteEnvironmentHandler(
+    req: Request,
+    res: Response
+) {
+    const { environmentId } = req.params;
+
+    if (typeof environmentId !== "string") {
+        res.status(400).json({
+            message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    await deleteEnvironment(environmentId);
+
+    res.status(204).send();
 }

@@ -40,3 +40,13 @@ export async function updateEnvironment(
         },
     });
 }
+
+export async function deleteEnvironment(
+    environmentId: string
+) {
+    return prisma.environment.delete({
+        where: {
+            id: environmentId,
+        },
+    });
+}
