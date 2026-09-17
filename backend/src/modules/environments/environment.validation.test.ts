@@ -81,3 +81,4 @@ describe("validateEnvironmentCreation", () => {
         ).toBe("projectId is required");
     });
 });
+

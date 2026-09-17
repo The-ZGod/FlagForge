@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { validateFeatureFlagUpdate } from "./feature-flag.validation.js";
+import {
+    validateFeatureFlagCreation,
+    validateFeatureFlagUpdate,
+} from "./feature-flag.validation.js";
+
 import {
     createFeatureFlag,
     getFeatureFlagsByEnvironment,
@@ -18,6 +22,21 @@ export async function createFeatureFlagHandler(
         enabled,
         rolloutPercentage,
     } = req.body;
+
+    const validationError = validateFeatureFlagCreation(
+        environmentId,
+        name,
+        key,
+        enabled,
+        rolloutPercentage
+    );
+
+    if (validationError) {
+        res.status(400).json({
+            message: validationError,
+        });
+        return;
+    }
 
     const featureFlag = await createFeatureFlag(
         environmentId,
@@ -101,3 +120,4 @@ export async function deleteFeatureFlagHandler(
 
     res.status(204).send();
 }
+
