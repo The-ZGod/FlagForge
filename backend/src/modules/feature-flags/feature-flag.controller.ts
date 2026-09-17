@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
     createFeatureFlag,
     getFeatureFlagsByEnvironment,
+    updateFeatureFlag,
 } from "./feature-flag.service.js";
 
 export async function createFeatureFlagHandler(
@@ -44,4 +45,27 @@ export async function getFeatureFlagsHandler(
         await getFeatureFlagsByEnvironment(environmentId);
 
     res.json(featureFlags);
+}
+
+export async function updateFeatureFlagHandler(
+    req: Request,
+    res: Response
+) {
+    const { flagId } = req.params;
+    const { enabled, rolloutPercentage } = req.body;
+
+    if (typeof flagId !== "string") {
+        res.status(400).json({
+            message: "Invalid flagId",
+        });
+        return;
+    }
+
+    const featureFlag = await updateFeatureFlag(
+        flagId,
+        enabled,
+        rolloutPercentage
+    );
+
+    res.json(featureFlag);
 }

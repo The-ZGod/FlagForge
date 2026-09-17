@@ -30,3 +30,19 @@ export async function getFeatureFlagsByEnvironment(
         },
     });
 }
+
+export async function updateFeatureFlag(
+    flagId: string,
+    enabled?: boolean,
+    rolloutPercentage?: number
+) {
+    return prisma.featureFlag.update({
+        where: {
+            id: flagId,
+        },
+        data: {
+            ...(enabled !== undefined && { enabled }),
+            ...(rolloutPercentage !== undefined && { rolloutPercentage }),
+        },
+    });
+}
