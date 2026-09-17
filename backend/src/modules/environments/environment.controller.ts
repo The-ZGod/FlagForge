@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
     createEnvironment,
     getEnvironmentsByProject,
+    updateEnvironment,
 } from "./environment.service.js";
 
 export async function createEnvironmentHandler(
@@ -36,4 +37,27 @@ export async function getEnvironmentsHandler(
         await getEnvironmentsByProject(projectId);
 
     res.json(environments);
+}
+
+export async function updateEnvironmentHandler(
+    req: Request,
+    res: Response
+) {
+    const { environmentId } = req.params;
+    const { name, key } = req.body;
+
+    if (typeof environmentId !== "string") {
+        res.status(400).json({
+            message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    const environment = await updateEnvironment(
+        environmentId,
+        name,
+        key
+    );
+
+    res.json(environment);
 }

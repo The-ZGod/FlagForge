@@ -24,3 +24,19 @@ export async function getEnvironmentsByProject(projectId: string) {
         },
     });
 }
+
+export async function updateEnvironment(
+    environmentId: string,
+    name?: string,
+    key?: string
+) {
+    return prisma.environment.update({
+        where: {
+            id: environmentId,
+        },
+        data: {
+            ...(name !== undefined && { name }),
+            ...(key !== undefined && { key }),
+        },
+    });
+}
