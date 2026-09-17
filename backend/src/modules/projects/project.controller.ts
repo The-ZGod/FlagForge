@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { validateProjectCreation } from "./project.validation.js";
 import {
     createProject,
     getProjectsByOwner,
@@ -9,6 +10,18 @@ export async function createProjectHandler(
     res: Response
 ) {
     const { name, ownerId } = req.body;
+
+    const validationError = validateProjectCreation(
+        name,
+        ownerId
+    );
+
+    if (validationError) {
+        res.status(400).json({
+            message: validationError,
+        });
+        return;
+    }
 
     const project = await createProject(name, ownerId);
 
