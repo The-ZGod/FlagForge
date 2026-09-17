@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { validateFeatureFlagUpdate } from "./feature-flag.validation.js";
 import {
     createFeatureFlag,
     getFeatureFlagsByEnvironment,
@@ -53,6 +54,18 @@ export async function updateFeatureFlagHandler(
 ) {
     const { flagId } = req.params;
     const { enabled, rolloutPercentage } = req.body;
+
+    const validationError = validateFeatureFlagUpdate(
+        enabled,
+        rolloutPercentage
+    );
+
+    if (validationError) {
+        res.status(400).json({
+            message: validationError,
+        });
+        return;
+    }
 
     if (typeof flagId !== "string") {
         res.status(400).json({
