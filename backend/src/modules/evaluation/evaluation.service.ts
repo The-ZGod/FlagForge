@@ -1,5 +1,8 @@
 import { createHash } from "node:crypto";
 import { prisma } from "../../lib/prisma.js";
+import type {
+    EvaluationResult,
+} from "./evaluation.types.js";
 
 export function getRolloutBucket(
     userId: string,
@@ -35,7 +38,7 @@ export async function evaluateFeatureFlag(
     environmentId: string,
     flagKey: string,
     userId: string
-) {
+): Promise<EvaluationResult> {
     const flag = await prisma.featureFlag.findUnique({
         where: {
             environmentId_key: {
