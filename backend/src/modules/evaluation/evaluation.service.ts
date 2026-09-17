@@ -33,7 +33,8 @@ export function isBucketInRollout(
 
 export async function evaluateFeatureFlag(
     environmentId: string,
-    flagKey: string
+    flagKey: string,
+    userId: string
 ) {
     const flag = await prisma.featureFlag.findUnique({
         where: {
@@ -58,8 +59,17 @@ export async function evaluateFeatureFlag(
         };
     }
 
+    const bucket = getRolloutBucket(userId, flag.key);
+
+    const enabled = isBucketInRollout(
+        bucket,
+        flag.rolloutPercentage
+    );
+
     return {
-        enabled: true,
-        reason: "FLAG_ENABLED",
+        enabled,
+        reason: enabled
+            ? "PERCENTAGE_ROLLOUT"
+            : "PERCENTAGE_ROLLOUT_EXCLUDED",
     };
 }

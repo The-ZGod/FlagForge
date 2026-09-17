@@ -5,11 +5,12 @@ export async function evaluateFeatureFlagHandler(
     req: Request,
     res: Response
 ) {
-    const { environmentId, flagKey } = req.body;
+    const { environmentId, flagKey, userId } = req.body;
 
     if (
         typeof environmentId !== "string" ||
-        typeof flagKey !== "string"
+        typeof flagKey !== "string" ||
+        typeof userId !== "string"
     ) {
         res.status(400).json({
             message: "environmentId and flagKey are required",
@@ -19,7 +20,8 @@ export async function evaluateFeatureFlagHandler(
 
     const result = await evaluateFeatureFlag(
         environmentId,
-        flagKey
+        flagKey,
+        userId
     );
 
     res.json(result);
