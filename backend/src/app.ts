@@ -17,6 +17,12 @@ app.get("/", (_req, res) => {
   });
 });
 
+app.get("/health", (_req, res) => {
+  res.json({
+    status: "ok",
+  });
+});
+
 app.use("/api/projects", projectRoutes);
 app.use("/api/environments", environmentRoutes);
 app.use("/api/feature-flags", featureFlagRoutes);
