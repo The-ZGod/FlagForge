@@ -46,3 +46,13 @@ export async function updateFeatureFlag(
         },
     });
 }
+
+export async function deleteFeatureFlag(
+    flagId: string
+) {
+    return prisma.featureFlag.delete({
+        where: {
+            id: flagId,
+        },
+    });
+}

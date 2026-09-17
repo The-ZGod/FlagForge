@@ -4,6 +4,7 @@ import {
     createFeatureFlag,
     getFeatureFlagsByEnvironment,
     updateFeatureFlag,
+    deleteFeatureFlag,
 } from "./feature-flag.service.js";
 
 export async function createFeatureFlagHandler(
@@ -81,4 +82,22 @@ export async function updateFeatureFlagHandler(
     );
 
     res.json(featureFlag);
+}
+
+export async function deleteFeatureFlagHandler(
+    req: Request,
+    res: Response
+) {
+    const { flagId } = req.params;
+
+    if (typeof flagId !== "string") {
+        res.status(400).json({
+            message: "Invalid flagId",
+        });
+        return;
+    }
+
+    await deleteFeatureFlag(flagId);
+
+    res.status(204).send();
 }
