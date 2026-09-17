@@ -110,6 +110,7 @@ export const FeatureFlagScalarFieldEnum = {
   name: 'name',
   key: 'key',
   enabled: 'enabled',
+  rolloutPercentage: 'rolloutPercentage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   environmentId: 'environmentId'

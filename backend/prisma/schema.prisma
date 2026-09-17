@@ -50,6 +50,7 @@ model FeatureFlag {
   name      String
   key       String
   enabled   Boolean  @default(false)
+  rolloutPercentage Int @default(100)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

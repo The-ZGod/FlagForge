@@ -4,7 +4,8 @@ export async function createFeatureFlag(
     environmentId: string,
     name: string,
     key: string,
-    enabled: boolean = false
+    enabled: boolean = false,
+    rolloutPercentage: number = 100
 ) {
     return prisma.featureFlag.create({
         data: {
@@ -12,6 +13,7 @@ export async function createFeatureFlag(
             name,
             key,
             enabled,
+            rolloutPercentage,
         },
     });
 }

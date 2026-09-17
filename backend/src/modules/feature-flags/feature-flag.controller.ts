@@ -8,13 +8,20 @@ export async function createFeatureFlagHandler(
     req: Request,
     res: Response
 ) {
-    const { environmentId, name, key, enabled } = req.body;
+    const {
+        environmentId,
+        name,
+        key,
+        enabled,
+        rolloutPercentage,
+    } = req.body;
 
     const featureFlag = await createFeatureFlag(
         environmentId,
         name,
         key,
-        enabled
+        enabled,
+        rolloutPercentage
     );
 
     res.status(201).json(featureFlag);

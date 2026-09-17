@@ -20,8 +20,18 @@ export type FeatureFlagModel = runtime.Types.Result.DefaultSelection<Prisma.$Fea
 
 export type AggregateFeatureFlag = {
   _count: FeatureFlagCountAggregateOutputType | null
+  _avg: FeatureFlagAvgAggregateOutputType | null
+  _sum: FeatureFlagSumAggregateOutputType | null
   _min: FeatureFlagMinAggregateOutputType | null
   _max: FeatureFlagMaxAggregateOutputType | null
+}
+
+export type FeatureFlagAvgAggregateOutputType = {
+  rolloutPercentage: number | null
+}
+
+export type FeatureFlagSumAggregateOutputType = {
+  rolloutPercentage: number | null
 }
 
 export type FeatureFlagMinAggregateOutputType = {
@@ -29,6 +39,7 @@ export type FeatureFlagMinAggregateOutputType = {
   name: string | null
   key: string | null
   enabled: boolean | null
+  rolloutPercentage: number | null
   createdAt: Date | null
   updatedAt: Date | null
   environmentId: string | null
@@ -39,6 +50,7 @@ export type FeatureFlagMaxAggregateOutputType = {
   name: string | null
   key: string | null
   enabled: boolean | null
+  rolloutPercentage: number | null
   createdAt: Date | null
   updatedAt: Date | null
   environmentId: string | null
@@ -49,6 +61,7 @@ export type FeatureFlagCountAggregateOutputType = {
   name: number
   key: number
   enabled: number
+  rolloutPercentage: number
   createdAt: number
   updatedAt: number
   environmentId: number
@@ -56,11 +69,20 @@ export type FeatureFlagCountAggregateOutputType = {
 }
 
 
+export type FeatureFlagAvgAggregateInputType = {
+  rolloutPercentage?: true
+}
+
+export type FeatureFlagSumAggregateInputType = {
+  rolloutPercentage?: true
+}
+
 export type FeatureFlagMinAggregateInputType = {
   id?: true
   name?: true
   key?: true
   enabled?: true
+  rolloutPercentage?: true
   createdAt?: true
   updatedAt?: true
   environmentId?: true
@@ -71,6 +93,7 @@ export type FeatureFlagMaxAggregateInputType = {
   name?: true
   key?: true
   enabled?: true
+  rolloutPercentage?: true
   createdAt?: true
   updatedAt?: true
   environmentId?: true
@@ -81,6 +104,7 @@ export type FeatureFlagCountAggregateInputType = {
   name?: true
   key?: true
   enabled?: true
+  rolloutPercentage?: true
   createdAt?: true
   updatedAt?: true
   environmentId?: true
@@ -125,6 +149,18 @@ export type FeatureFlagAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: FeatureFlagAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: FeatureFlagSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: FeatureFlagMinAggregateInputType
@@ -155,6 +191,8 @@ export type FeatureFlagGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: FeatureFlagCountAggregateInputType | true
+  _avg?: FeatureFlagAvgAggregateInputType
+  _sum?: FeatureFlagSumAggregateInputType
   _min?: FeatureFlagMinAggregateInputType
   _max?: FeatureFlagMaxAggregateInputType
 }
@@ -164,10 +202,13 @@ export type FeatureFlagGroupByOutputType = {
   name: string
   key: string
   enabled: boolean
+  rolloutPercentage: number
   createdAt: Date
   updatedAt: Date
   environmentId: string
   _count: FeatureFlagCountAggregateOutputType | null
+  _avg: FeatureFlagAvgAggregateOutputType | null
+  _sum: FeatureFlagSumAggregateOutputType | null
   _min: FeatureFlagMinAggregateOutputType | null
   _max: FeatureFlagMaxAggregateOutputType | null
 }
@@ -195,6 +236,7 @@ export type FeatureFlagWhereInput = {
   name?: Prisma.StringFilter<"FeatureFlag"> | string
   key?: Prisma.StringFilter<"FeatureFlag"> | string
   enabled?: Prisma.BoolFilter<"FeatureFlag"> | boolean
+  rolloutPercentage?: Prisma.IntFilter<"FeatureFlag"> | number
   createdAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   environmentId?: Prisma.StringFilter<"FeatureFlag"> | string
@@ -206,6 +248,7 @@ export type FeatureFlagOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   key?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  rolloutPercentage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   environmentId?: Prisma.SortOrder
@@ -221,6 +264,7 @@ export type FeatureFlagWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"FeatureFlag"> | string
   key?: Prisma.StringFilter<"FeatureFlag"> | string
   enabled?: Prisma.BoolFilter<"FeatureFlag"> | boolean
+  rolloutPercentage?: Prisma.IntFilter<"FeatureFlag"> | number
   createdAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   environmentId?: Prisma.StringFilter<"FeatureFlag"> | string
@@ -232,12 +276,15 @@ export type FeatureFlagOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   key?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  rolloutPercentage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   environmentId?: Prisma.SortOrder
   _count?: Prisma.FeatureFlagCountOrderByAggregateInput
+  _avg?: Prisma.FeatureFlagAvgOrderByAggregateInput
   _max?: Prisma.FeatureFlagMaxOrderByAggregateInput
   _min?: Prisma.FeatureFlagMinOrderByAggregateInput
+  _sum?: Prisma.FeatureFlagSumOrderByAggregateInput
 }
 
 export type FeatureFlagScalarWhereWithAggregatesInput = {
@@ -248,6 +295,7 @@ export type FeatureFlagScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"FeatureFlag"> | string
   key?: Prisma.StringWithAggregatesFilter<"FeatureFlag"> | string
   enabled?: Prisma.BoolWithAggregatesFilter<"FeatureFlag"> | boolean
+  rolloutPercentage?: Prisma.IntWithAggregatesFilter<"FeatureFlag"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FeatureFlag"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"FeatureFlag"> | Date | string
   environmentId?: Prisma.StringWithAggregatesFilter<"FeatureFlag"> | string
@@ -258,6 +306,7 @@ export type FeatureFlagCreateInput = {
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   environment: Prisma.EnvironmentCreateNestedOneWithoutFeatureFlagsInput
@@ -268,6 +317,7 @@ export type FeatureFlagUncheckedCreateInput = {
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   environmentId: string
@@ -278,6 +328,7 @@ export type FeatureFlagUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   environment?: Prisma.EnvironmentUpdateOneRequiredWithoutFeatureFlagsNestedInput
@@ -288,6 +339,7 @@ export type FeatureFlagUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   environmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -298,6 +350,7 @@ export type FeatureFlagCreateManyInput = {
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   environmentId: string
@@ -308,6 +361,7 @@ export type FeatureFlagUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -317,6 +371,7 @@ export type FeatureFlagUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   environmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -342,9 +397,14 @@ export type FeatureFlagCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   key?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  rolloutPercentage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   environmentId?: Prisma.SortOrder
+}
+
+export type FeatureFlagAvgOrderByAggregateInput = {
+  rolloutPercentage?: Prisma.SortOrder
 }
 
 export type FeatureFlagMaxOrderByAggregateInput = {
@@ -352,6 +412,7 @@ export type FeatureFlagMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   key?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  rolloutPercentage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   environmentId?: Prisma.SortOrder
@@ -362,9 +423,14 @@ export type FeatureFlagMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   key?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  rolloutPercentage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   environmentId?: Prisma.SortOrder
+}
+
+export type FeatureFlagSumOrderByAggregateInput = {
+  rolloutPercentage?: Prisma.SortOrder
 }
 
 export type FeatureFlagCreateNestedManyWithoutEnvironmentInput = {
@@ -413,11 +479,20 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type FeatureFlagCreateWithoutEnvironmentInput = {
   id?: string
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -427,6 +502,7 @@ export type FeatureFlagUncheckedCreateWithoutEnvironmentInput = {
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -465,6 +541,7 @@ export type FeatureFlagScalarWhereInput = {
   name?: Prisma.StringFilter<"FeatureFlag"> | string
   key?: Prisma.StringFilter<"FeatureFlag"> | string
   enabled?: Prisma.BoolFilter<"FeatureFlag"> | boolean
+  rolloutPercentage?: Prisma.IntFilter<"FeatureFlag"> | number
   createdAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FeatureFlag"> | Date | string
   environmentId?: Prisma.StringFilter<"FeatureFlag"> | string
@@ -475,6 +552,7 @@ export type FeatureFlagCreateManyEnvironmentInput = {
   name: string
   key: string
   enabled?: boolean
+  rolloutPercentage?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -484,6 +562,7 @@ export type FeatureFlagUpdateWithoutEnvironmentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -493,6 +572,7 @@ export type FeatureFlagUncheckedUpdateWithoutEnvironmentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -502,6 +582,7 @@ export type FeatureFlagUncheckedUpdateManyWithoutEnvironmentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  rolloutPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -513,6 +594,7 @@ export type FeatureFlagSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   name?: boolean
   key?: boolean
   enabled?: boolean
+  rolloutPercentage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   environmentId?: boolean
@@ -524,6 +606,7 @@ export type FeatureFlagSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   key?: boolean
   enabled?: boolean
+  rolloutPercentage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   environmentId?: boolean
@@ -535,6 +618,7 @@ export type FeatureFlagSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   key?: boolean
   enabled?: boolean
+  rolloutPercentage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   environmentId?: boolean
@@ -546,12 +630,13 @@ export type FeatureFlagSelectScalar = {
   name?: boolean
   key?: boolean
   enabled?: boolean
+  rolloutPercentage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   environmentId?: boolean
 }
 
-export type FeatureFlagOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "key" | "enabled" | "createdAt" | "updatedAt" | "environmentId", ExtArgs["result"]["featureFlag"]>
+export type FeatureFlagOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "key" | "enabled" | "rolloutPercentage" | "createdAt" | "updatedAt" | "environmentId", ExtArgs["result"]["featureFlag"]>
 export type FeatureFlagInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   environment?: boolean | Prisma.EnvironmentDefaultArgs<ExtArgs>
 }
@@ -572,6 +657,7 @@ export type $FeatureFlagPayload<ExtArgs extends runtime.Types.Extensions.Interna
     name: string
     key: string
     enabled: boolean
+    rolloutPercentage: number
     createdAt: Date
     updatedAt: Date
     environmentId: string
@@ -1003,6 +1089,7 @@ export interface FeatureFlagFieldRefs {
   readonly name: Prisma.FieldRef<"FeatureFlag", 'String'>
   readonly key: Prisma.FieldRef<"FeatureFlag", 'String'>
   readonly enabled: Prisma.FieldRef<"FeatureFlag", 'Boolean'>
+  readonly rolloutPercentage: Prisma.FieldRef<"FeatureFlag", 'Int'>
   readonly createdAt: Prisma.FieldRef<"FeatureFlag", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"FeatureFlag", 'DateTime'>
   readonly environmentId: Prisma.FieldRef<"FeatureFlag", 'String'>
