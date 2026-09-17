@@ -3,6 +3,7 @@ import projectRoutes from "./modules/projects/project.routes.js";
 import environmentRoutes from "./modules/environments/environment.routes.js";
 import featureFlagRoutes from "./modules/feature-flags/feature-flag.routes.js";
 import evaluationRoutes from "./modules/evaluation/evaluation.routes.js";
+import { errorHandler } from "./middleware/error-handler.js";
 
 const app = express();
 
@@ -18,5 +19,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/environments", environmentRoutes);
 app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/evaluation", evaluationRoutes);
+
+app.use(errorHandler);
 
 export default app;
