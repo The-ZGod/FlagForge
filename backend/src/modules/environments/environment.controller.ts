@@ -91,7 +91,22 @@ export async function deleteEnvironmentHandler(
         return;
     }
 
-    await deleteEnvironment(environmentId);
+    try {
+        await deleteEnvironment(environmentId);
+    } catch (error) {
+        if (
+            error instanceof Error &&
+            error.message ===
+            "Cannot delete environment with existing feature flags"
+        ) {
+            res.status(409).json({
+                message: error.message,
+            });
+            return;
+        }
+
+        throw error;
+    }
 
     res.status(204).send();
 }

@@ -44,6 +44,18 @@ export async function updateEnvironment(
 export async function deleteEnvironment(
     environmentId: string
 ) {
+    const featureFlagCount = await prisma.featureFlag.count({
+        where: {
+            environmentId,
+        },
+    });
+
+    if (featureFlagCount > 0) {
+        throw new Error(
+            "Cannot delete environment with existing feature flags"
+        );
+    }
+
     return prisma.environment.delete({
         where: {
             id: environmentId,
