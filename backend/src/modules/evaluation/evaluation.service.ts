@@ -59,6 +59,13 @@ export async function evaluateFeatureFlag(
         };
     }
 
+    if (flag.rolloutPercentage >= 100) {
+        return {
+            enabled: true,
+            reason: "FULL_ROLLOUT",
+        };
+    }
+
     const bucket = getRolloutBucket(userId, flag.key);
 
     const enabled = isBucketInRollout(

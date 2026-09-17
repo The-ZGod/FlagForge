@@ -101,6 +101,17 @@ describe("Evaluation Service", () => {
             expect(isBucketInRollout(99, 20)).toBe(false);
         });
 
+        it("should enable every bucket for 100% rollout", () => {
+            for (let bucket = 0; bucket < 100; bucket++) {
+                expect(isBucketInRollout(bucket, 100)).toBe(true);
+            }
+        });
+
+        it("should disable every bucket for 0% rollout", () => {
+            for (let bucket = 0; bucket < 100; bucket++) {
+                expect(isBucketInRollout(bucket, 0)).toBe(false);
+            }
+        });
         
     });
 });
