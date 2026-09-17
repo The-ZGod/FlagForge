@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { validateEnvironmentCreation } from "./environment.validation.js";
 import {
     createEnvironment,
     getEnvironmentsByProject,
@@ -11,6 +12,19 @@ export async function createEnvironmentHandler(
     res: Response
 ) {
     const { projectId, name, key } = req.body;
+
+    const validationError = validateEnvironmentCreation(
+        projectId,
+        name,
+        key
+    );
+
+    if (validationError) {
+        res.status(400).json({
+            message: validationError,
+        });
+        return;
+    }
 
     const environment = await createEnvironment(
         projectId,
