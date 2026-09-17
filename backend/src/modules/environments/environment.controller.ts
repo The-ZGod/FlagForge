@@ -6,6 +6,8 @@ import {
     getEnvironmentsByProject,
     updateEnvironment,
     deleteEnvironment,
+    projectBelongsToUser,
+    getEnvironmentWithOwner,
 } from "./environment.service.js";
 
 export async function createEnvironmentHandler(
@@ -23,6 +25,18 @@ export async function createEnvironmentHandler(
     if (validationError) {
         res.status(400).json({
             message: validationError,
+        });
+        return;
+    }
+
+    const projectOwnedByUser = await projectBelongsToUser(
+        projectId,
+        req.userId
+    );
+
+    if (!projectOwnedByUser) {
+        res.status(403).json({
+            message: "You do not have access to this project",
         });
         return;
     }
@@ -49,6 +63,18 @@ export async function getEnvironmentsHandler(
         return;
     }
 
+    const projectOwnedByUser = await projectBelongsToUser(
+        projectId,
+        req.userId
+    );
+
+    if (!projectOwnedByUser) {
+        res.status(403).json({
+            message: "You do not have access to this project",
+        });
+        return;
+    }
+
     const environments =
         await getEnvironmentsByProject(projectId);
 
@@ -65,6 +91,25 @@ export async function updateEnvironmentHandler(
     if (typeof environmentId !== "string") {
         res.status(400).json({
             message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    const existingEnvironment =
+        await getEnvironmentWithOwner(environmentId);
+
+    if (!existingEnvironment) {
+        res.status(404).json({
+            message: "Environment not found",
+        });
+        return;
+    }
+
+    if (
+        existingEnvironment.project.ownerId !== req.userId
+    ) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
         });
         return;
     }
@@ -87,6 +132,25 @@ export async function deleteEnvironmentHandler(
     if (typeof environmentId !== "string") {
         res.status(400).json({
             message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    const existingEnvironment =
+        await getEnvironmentWithOwner(environmentId);
+
+    if (!existingEnvironment) {
+        res.status(404).json({
+            message: "Environment not found",
+        });
+        return;
+    }
+
+    if (
+        existingEnvironment.project.ownerId !== req.userId
+    ) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
         });
         return;
     }

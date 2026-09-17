@@ -1,3 +1,22 @@
+export const RULE_OPERATORS = [
+    "EQUALS",
+    "NOT_EQUALS",
+] as const;
+
+export type RuleOperator =
+    (typeof RULE_OPERATORS)[number];
+
+export function isValidRuleOperator(
+    operator: unknown
+): operator is RuleOperator {
+    return (
+        typeof operator === "string" &&
+        RULE_OPERATORS.includes(
+            operator as RuleOperator
+        )
+    );
+}
+
 export function validateFeatureFlagUpdate(
     enabled: unknown,
     rolloutPercentage: unknown
@@ -69,6 +88,41 @@ export function validateFeatureFlagCreation(
         )
     ) {
         return "rolloutPercentage must be an integer between 0 and 100";
+    }
+
+    return null;
+}
+
+
+export function validateFlagRuleCreation(
+    featureFlagId: unknown,
+    attribute: unknown,
+    operator: unknown,
+    value: unknown
+): string | null {
+    if (
+        typeof featureFlagId !== "string" ||
+        featureFlagId.trim().length === 0
+    ) {
+        return "featureFlagId is required";
+    }
+
+    if (
+        typeof attribute !== "string" ||
+        attribute.trim().length === 0
+    ) {
+        return "attribute is required";
+    }
+
+    if (!isValidRuleOperator(operator)) {
+        return "operator must be EQUALS or NOT_EQUALS";
+    }
+
+    if (
+        typeof value !== "string" ||
+        value.trim().length === 0
+    ) {
+        return "value is required";
     }
 
     return null;

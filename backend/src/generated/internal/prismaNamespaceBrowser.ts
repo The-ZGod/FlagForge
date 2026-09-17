@@ -52,7 +52,8 @@ export const ModelName = {
   User: 'User',
   Project: 'Project',
   Environment: 'Environment',
-  FeatureFlag: 'FeatureFlag'
+  FeatureFlag: 'FeatureFlag',
+  FlagRule: 'FlagRule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -75,6 +76,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
+  password: 'password',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -117,6 +119,18 @@ export const FeatureFlagScalarFieldEnum = {
 } as const
 
 export type FeatureFlagScalarFieldEnum = (typeof FeatureFlagScalarFieldEnum)[keyof typeof FeatureFlagScalarFieldEnum]
+
+
+export const FlagRuleScalarFieldEnum = {
+  id: 'id',
+  attribute: 'attribute',
+  operator: 'operator',
+  value: 'value',
+  featureFlagId: 'featureFlagId',
+  createdAt: 'createdAt'
+} as const
+
+export type FlagRuleScalarFieldEnum = (typeof FlagRuleScalarFieldEnum)[keyof typeof FlagRuleScalarFieldEnum]
 
 
 export const SortOrder = {

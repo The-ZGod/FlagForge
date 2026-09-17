@@ -62,3 +62,37 @@ export async function deleteEnvironment(
         },
     });
 }
+
+export async function getEnvironmentWithOwner(
+    environmentId: string
+) {
+    return prisma.environment.findUnique({
+        where: {
+            id: environmentId,
+        },
+        include: {
+            project: {
+                select: {
+                    ownerId: true,
+                },
+            },
+        },
+    });
+}
+
+export async function projectBelongsToUser(
+    projectId: string,
+    userId: string
+) {
+    const project = await prisma.project.findFirst({
+        where: {
+            id: projectId,
+            ownerId: userId,
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return project !== null;
+}

@@ -5,7 +5,12 @@ export async function evaluateFeatureFlagHandler(
     req: Request,
     res: Response
 ) {
-    const { environmentId, flagKey, userId } = req.body;
+    const {
+        environmentId,
+        flagKey,
+        userId,
+        attributes,
+    } = req.body;
 
     if (
         typeof environmentId !== "string" ||
@@ -21,7 +26,8 @@ export async function evaluateFeatureFlagHandler(
     const result = await evaluateFeatureFlag(
         environmentId,
         flagKey,
-        userId
+        userId,
+        attributes
     );
 
     res.json(result);

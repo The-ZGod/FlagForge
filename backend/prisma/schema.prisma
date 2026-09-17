@@ -9,13 +9,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String    @id @default(cuid())
+  email     String    @unique
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  password  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  projects Project[]
+  projects  Project[]
 }
 
 model Project {
@@ -57,5 +58,19 @@ model FeatureFlag {
   environmentId String
   environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
 
+  rules FlagRule[]
+
   @@unique([environmentId, key])
+}
+
+model FlagRule {
+  id          String      @id @default(cuid())
+  attribute   String
+  operator    String
+  value       String
+
+  featureFlagId String
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId],references: [id],onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
 }

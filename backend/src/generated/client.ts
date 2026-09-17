@@ -64,3 +64,8 @@ export type Environment = Prisma.EnvironmentModel
  * 
  */
 export type FeatureFlag = Prisma.FeatureFlagModel
+/**
+ * Model FlagRule
+ * 
+ */
+export type FlagRule = Prisma.FlagRuleModel

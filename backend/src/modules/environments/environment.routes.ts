@@ -5,12 +5,13 @@ import {
     updateEnvironmentHandler,
     deleteEnvironmentHandler,
 } from "./environment.controller.js";
+import { authenticate } from "../../middleware/auth.js";
 
 const router = Router();
 
-router.post("/", createEnvironmentHandler);
-router.get("/project/:projectId", getEnvironmentsHandler);
-router.patch("/:environmentId", updateEnvironmentHandler);
-router.delete("/:environmentId", deleteEnvironmentHandler);
+router.post("/", authenticate, createEnvironmentHandler);
+router.get("/project/:projectId", authenticate, getEnvironmentsHandler);
+router.patch("/:environmentId", authenticate, updateEnvironmentHandler);
+router.delete("/:environmentId", authenticate, deleteEnvironmentHandler);
 
 export default router;

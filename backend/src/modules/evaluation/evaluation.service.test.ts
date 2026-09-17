@@ -1,7 +1,18 @@
 import {
     getRolloutBucket,
     isBucketInRollout,
+    evaluateFeatureFlag,
 } from "./evaluation.service.js";
+
+import { prisma } from "../../lib/prisma.js";
+
+jest.mock("../../lib/prisma.js", () => ({
+    prisma: {
+        featureFlag: {
+            findUnique: jest.fn(),
+        },
+    },
+}));
 
 describe("Evaluation Service", () => {
     describe("getRolloutBucket", () => {
@@ -113,5 +124,65 @@ describe("Evaluation Service", () => {
             }
         });
         
+    });
+
+    describe("evaluateFeatureFlag - targeting rules", () => {
+        it("should enable the flag when targeting rules match", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue({
+                key: "new_checkout",
+                enabled: true,
+                rolloutPercentage: 100,
+                rules: [
+                    {
+                        attribute: "country",
+                        operator: "EQUALS",
+                        value: "IN",
+                    },
+                ],
+            });
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "new_checkout",
+                "user-123",
+                {
+                    country: "IN",
+                }
+            );
+
+            expect(result).toEqual({
+                enabled: true,
+                reason: "FULL_ROLLOUT",
+            });
+        });
+
+        it("should disable the flag when targeting rules do not match", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue({
+                key: "new_checkout",
+                enabled: true,
+                rolloutPercentage: 100,
+                rules: [
+                    {
+                        attribute: "country",
+                        operator: "EQUALS",
+                        value: "IN",
+                    },
+                ],
+            });
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "new_checkout",
+                "user-123",
+                {
+                    country: "US",
+                }
+            );
+
+            expect(result).toEqual({
+                enabled: false,
+                reason: "TARGETING_RULE_NOT_MATCHED",
+            });
+        });
     });
 });

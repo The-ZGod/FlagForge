@@ -393,7 +393,8 @@ export const ModelName = {
   User: 'User',
   Project: 'Project',
   Environment: 'Environment',
-  FeatureFlag: 'FeatureFlag'
+  FeatureFlag: 'FeatureFlag',
+  FlagRule: 'FlagRule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "project" | "environment" | "featureFlag"
+    modelProps: "user" | "project" | "environment" | "featureFlag" | "flagRule"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -709,6 +710,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FlagRule: {
+      payload: Prisma.$FlagRulePayload<ExtArgs>
+      fields: Prisma.FlagRuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FlagRuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FlagRuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        findFirst: {
+          args: Prisma.FlagRuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FlagRuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        findMany: {
+          args: Prisma.FlagRuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>[]
+        }
+        create: {
+          args: Prisma.FlagRuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        createMany: {
+          args: Prisma.FlagRuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FlagRuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>[]
+        }
+        delete: {
+          args: Prisma.FlagRuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        update: {
+          args: Prisma.FlagRuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        deleteMany: {
+          args: Prisma.FlagRuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FlagRuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FlagRuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>[]
+        }
+        upsert: {
+          args: Prisma.FlagRuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FlagRulePayload>
+        }
+        aggregate: {
+          args: Prisma.FlagRuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFlagRule>
+        }
+        groupBy: {
+          args: Prisma.FlagRuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FlagRuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FlagRuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FlagRuleCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -752,6 +827,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
+  password: 'password',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -794,6 +870,18 @@ export const FeatureFlagScalarFieldEnum = {
 } as const
 
 export type FeatureFlagScalarFieldEnum = (typeof FeatureFlagScalarFieldEnum)[keyof typeof FeatureFlagScalarFieldEnum]
+
+
+export const FlagRuleScalarFieldEnum = {
+  id: 'id',
+  attribute: 'attribute',
+  operator: 'operator',
+  value: 'value',
+  featureFlagId: 'featureFlagId',
+  createdAt: 'createdAt'
+} as const
+
+export type FlagRuleScalarFieldEnum = (typeof FlagRuleScalarFieldEnum)[keyof typeof FlagRuleScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -979,6 +1067,7 @@ export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   environment?: Prisma.EnvironmentOmit
   featureFlag?: Prisma.FeatureFlagOmit
+  flagRule?: Prisma.FlagRuleOmit
 }
 
 /* Types for Logging */

@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { authenticate } from "../../middleware/auth.js";
+
 import {
     createProjectHandler,
     getProjectsHandler,
@@ -6,7 +8,7 @@ import {
 
 const router = Router();
 
-router.post("/", createProjectHandler);
-router.get("/owner/:ownerId", getProjectsHandler);
+router.post("/", authenticate, createProjectHandler);
+router.get("/", authenticate, getProjectsHandler);
 
 export default router;
