@@ -56,3 +56,13 @@ export async function deleteFeatureFlag(
         },
     });
 }
+
+export async function getFeatureFlagById(
+    flagId: string
+) {
+    return prisma.featureFlag.findUnique({
+        where: {
+            id: flagId,
+        },
+    });
+}
