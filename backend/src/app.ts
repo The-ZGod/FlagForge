@@ -4,10 +4,12 @@ import environmentRoutes from "./modules/environments/environment.routes.js";
 import featureFlagRoutes from "./modules/feature-flags/feature-flag.routes.js";
 import evaluationRoutes from "./modules/evaluation/evaluation.routes.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { requestLogger } from "./middleware/request-logger.js";
 
 const app = express();
 
 app.use(express.json());
+app.use(requestLogger);
 
 app.get("/", (_req, res) => {
   res.json({
