@@ -1,5 +1,8 @@
 import { NavLink } from "react-router-dom";
 
+import { LogOut } from "lucide-react";
+import { logout } from "@/lib/auth";
+
 import {
     Activity,
     Flag,
@@ -68,9 +71,29 @@ export function Sidebar() {
                 </nav>
 
                 <div className="border-t p-4">
-                    <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                    <NavLink
+                        to="/settings"
+                        className={({ isActive }) =>
+                            `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${isActive
+                                ? "bg-muted font-medium"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`
+                        }
+                    >
                         <Settings className="size-4" />
                         Settings
+                    </NavLink>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            logout();
+                            window.location.href = "/login";
+                        }}
+                        className="mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                        <LogOut className="size-4" />
+                        Sign out
                     </button>
                 </div>
             </div>

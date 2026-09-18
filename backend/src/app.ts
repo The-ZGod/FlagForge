@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+
 import projectRoutes from "./modules/projects/project.routes.js";
 import environmentRoutes from "./modules/environments/environment.routes.js";
 import featureFlagRoutes from "./modules/feature-flags/feature-flag.routes.js";
@@ -10,6 +12,7 @@ import featureFlagRuleRoutes from "./modules/feature-flags/feature-flag-rule.rou
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
