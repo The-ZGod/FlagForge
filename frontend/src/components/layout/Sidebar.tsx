@@ -7,7 +7,6 @@ import {
     Activity,
     Flag,
     FolderKanban,
-    Layers3,
     Settings,
 } from "lucide-react";
 
@@ -21,11 +20,6 @@ const navigationItems = [
         label: "Projects",
         icon: FolderKanban,
         path: "/projects",
-    },
-    {
-        label: "Environments",
-        icon: Layers3,
-        path: "/environments",
     },
     {
         label: "Feature Flags",

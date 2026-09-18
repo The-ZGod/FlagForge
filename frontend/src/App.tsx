@@ -24,7 +24,10 @@ function App() {
               path="/projects/:projectId"
               element={<Environments />}
             />
-            <Route path="/environments" element={<Environments />} />
+            <Route
+              path="/projects/:projectId/environments/:environmentId"
+              element={<FeatureFlags />}
+            />
             <Route path="/feature-flags" element={<FeatureFlags />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
