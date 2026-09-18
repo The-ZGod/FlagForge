@@ -9,6 +9,7 @@ import { Projects } from "@/pages/Projects";
 import { Environments } from "@/pages/Environments";
 import { FeatureFlags } from "@/pages/FeatureFlags";
 import { Settings } from "@/pages/Settings";
+import { EvaluationPlayground } from "@/pages/EvaluationPlayground";
 
 function App() {
   return (
@@ -29,6 +30,10 @@ function App() {
               element={<FeatureFlags />}
             />
             <Route path="/feature-flags" element={<FeatureFlags />} />
+            <Route
+              path="/projects/:projectId/environments/:environmentId/evaluate"
+              element={<EvaluationPlayground />}
+            />
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
