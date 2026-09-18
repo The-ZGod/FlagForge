@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom";
+
 import {
     Activity,
     Flag,
@@ -10,28 +12,26 @@ const navigationItems = [
     {
         label: "Dashboard",
         icon: Activity,
+        path: "/dashboard",
     },
     {
         label: "Projects",
         icon: FolderKanban,
+        path: "/projects",
     },
     {
         label: "Environments",
         icon: Layers3,
+        path: "/environments",
     },
     {
         label: "Feature Flags",
         icon: Flag,
+        path: "/feature-flags",
     },
 ];
 
-interface SidebarProps {
-    activeItem?: string;
-}
-
-export function Sidebar({
-    activeItem = "Dashboard",
-}: SidebarProps) {
+export function Sidebar() {
     return (
         <aside className="hidden w-64 shrink-0 border-r bg-muted/20 md:block">
             <div className="flex min-h-screen flex-col">
@@ -48,19 +48,21 @@ export function Sidebar({
                 <nav className="flex-1 space-y-1 p-4">
                     {navigationItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = item.label === activeItem;
 
                         return (
-                            <button
+                            <NavLink
                                 key={item.label}
-                                className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${isActive
+                                to={item.path}
+                                className={({ isActive }) =>
+                                    `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${isActive
                                         ? "bg-muted font-medium"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                    }`}
+                                    }`
+                                }
                             >
                                 <Icon className="size-4" />
                                 {item.label}
-                            </button>
+                            </NavLink>
                         );
                     })}
                 </nav>
