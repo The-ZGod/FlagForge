@@ -20,6 +20,10 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
+            <Route
+              path="/projects/:projectId"
+              element={<Environments />}
+            />
             <Route path="/environments" element={<Environments />} />
             <Route path="/feature-flags" element={<FeatureFlags />} />
             <Route path="/settings" element={<Settings />} />

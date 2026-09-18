@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -164,20 +165,26 @@ export function Projects() {
                 {!loading && !error && projects.length > 0 && (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {projects.map((project) => (
-                            <Card key={project.id}>
-                                <CardContent className="p-6">
-                                    <h3 className="font-medium">
-                                        {project.name}
-                                    </h3>
+                            <Link
+                                key={project.id}
+                                to={`/projects/${project.id}`}
+                                className="block"
+                            >
+                                <Card className="h-full transition-colors hover:bg-muted/40">
+                                    <CardContent className="p-6">
+                                        <h3 className="font-medium">
+                                            {project.name}
+                                        </h3>
 
-                                    <p className="mt-2 text-xs text-muted-foreground">
-                                        Created{" "}
-                                        {new Date(
-                                            project.createdAt
-                                        ).toLocaleDateString()}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                            Created{" "}
+                                            {new Date(
+                                                project.createdAt
+                                            ).toLocaleDateString()}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
                     </div>
                 )}
