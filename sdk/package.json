@@ -1,0 +1,21 @@
+{
+  "name": "@flagforge/sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for the FlagForge feature flag platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "feature-flags",
+    "feature-toggle",
+    "experimentation"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "flagforge-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
