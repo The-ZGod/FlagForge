@@ -5,8 +5,7 @@
   "scripts": {
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "build:demo": "cd demo && npm run build",
-    "start:demo": "cd demo && npm start",
+    "run:demo": "cd demo && npm run build && npm start",
     "build:sdk": "cd sdk && npm run build",
     "test:backend": "cd backend && npm test",
     "test": "npm run test:backend"
