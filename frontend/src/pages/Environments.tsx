@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { Copy, KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { generateEnvironmentApiKey } from "@/lib/api-keys";
 
 import {
     createEnvironment,
@@ -30,6 +33,11 @@ export function Environments() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState("");
     const [editKey, setEditKey] = useState("");
+
+    const [generatingKeyId, setGeneratingKeyId] = useState<string | null>(null);
+    const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+    const [generatedKeyEnvironment, setGeneratedKeyEnvironment] =
+        useState<string | null>(null);
 
     useEffect(() => {
         if (!projectId) {
@@ -162,6 +170,35 @@ export function Environments() {
                     ? error.message
                     : "Failed to delete environment"
             );
+        }
+    }
+
+    async function handleGenerateApiKey(environmentId: string) {
+        const confirmed = window.confirm(
+            "Generate a new SDK API key? Any existing key for this environment will stop working."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setError("");
+            setGeneratingKeyId(environmentId);
+
+            const result =
+                await generateEnvironmentApiKey(environmentId);
+
+            setGeneratedKey(result.apiKey);
+            setGeneratedKeyEnvironment(environmentId);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to generate API key"
+            );
+        } finally {
+            setGeneratingKeyId(null);
         }
     }
 
@@ -310,9 +347,7 @@ export function Environments() {
                                                     <Input
                                                         value={editName}
                                                         onChange={(event) =>
-                                                            setEditName(
-                                                                event.target.value
-                                                            )
+                                                            setEditName(event.target.value)
                                                         }
                                                     />
                                                 </div>
@@ -325,9 +360,7 @@ export function Environments() {
                                                     <Input
                                                         value={editKey}
                                                         onChange={(event) =>
-                                                            setEditKey(
-                                                                event.target.value
-                                                            )
+                                                            setEditKey(event.target.value)
                                                         }
                                                     />
                                                 </div>
@@ -356,53 +389,115 @@ export function Environments() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-start justify-between gap-4">
-                                                <Link
-                                                    to={`/projects/${projectId}/environments/${environment.id}`}
-                                                    className="min-w-0 flex-1"
-                                                >
-                                                    <h3 className="font-medium hover:underline">
-                                                        {environment.name}
-                                                    </h3>
-
-                                                    <p className="mt-2 text-xs text-muted-foreground">
-                                                        Key:{" "}
-                                                        {environment.key}
-                                                    </p>
-                                                </Link>
-
-                                                <div className="flex shrink-0 gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => {
-                                                            setEditingId(
-                                                                environment.id
-                                                            );
-                                                            setEditName(
-                                                                environment.name
-                                                            );
-                                                            setEditKey(
-                                                                environment.key
-                                                            );
-                                                        }}
+                                            <>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <Link
+                                                        to={`/projects/${projectId}/environments/${environment.id}`}
+                                                        className="min-w-0 flex-1"
                                                     >
-                                                        <Pencil className="size-4" />
-                                                    </Button>
+                                                        <h3 className="font-medium hover:underline">
+                                                            {environment.name}
+                                                        </h3>
 
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            handleDeleteEnvironment(
-                                                                environment.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                    </Button>
+                                                        <p className="mt-2 text-xs text-muted-foreground">
+                                                            Key: {environment.key}
+                                                        </p>
+                                                    </Link>
+
+                                                    <div className="flex shrink-0 gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => {
+                                                                setEditingId(environment.id);
+                                                                setEditName(environment.name);
+                                                                setEditKey(environment.key);
+                                                            }}
+                                                        >
+                                                            <Pencil className="size-4" />
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                handleDeleteEnvironment(
+                                                                    environment.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
+
+                                                {/* SDK API Key */}
+                                                <div className="mt-4 border-t pt-4">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-sm font-medium">
+                                                                SDK API Key
+                                                            </p>
+
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Generate a key for SDK evaluation.
+                                                            </p>
+                                                        </div>
+
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={
+                                                                generatingKeyId === environment.id
+                                                            }
+                                                            onClick={() =>
+                                                                handleGenerateApiKey(
+                                                                    environment.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <KeyRound className="size-4" />
+
+                                                            {generatingKeyId === environment.id
+                                                                ? "Generating..."
+                                                                : "Generate Key"}
+                                                        </Button>
+                                                    </div>
+
+                                                    {generatedKeyEnvironment === environment.id &&
+                                                        generatedKey && (
+                                                            <div className="mt-3 rounded-md border bg-muted/50 p-3">
+                                                                <p className="text-xs font-medium">
+                                                                    Copy this key now
+                                                                </p>
+
+                                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                                    It will not be shown again.
+                                                                </p>
+
+                                                                <div className="mt-2 flex gap-2">
+                                                                    <Input
+                                                                        readOnly
+                                                                        value={generatedKey}
+                                                                        className="font-mono text-xs"
+                                                                    />
+
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                        onClick={() =>
+                                                                            navigator.clipboard.writeText(
+                                                                                generatedKey
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Copy className="size-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                </div>
+                                            </>
                                         )}
                                     </CardContent>
                                 </Card>
