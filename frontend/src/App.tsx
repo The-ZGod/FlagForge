@@ -41,8 +41,6 @@ function App() {
 
             <Route path="/activity" element={<Activity />} />
 
-            <Route path="/feature-flags" element={<FeatureFlags />} />
-
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>

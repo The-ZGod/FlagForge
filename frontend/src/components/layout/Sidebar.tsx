@@ -5,7 +5,6 @@ import { logout } from "@/lib/auth";
 
 import {
     Activity,
-    Flag,
     FolderKanban,
     History,
     Settings,
@@ -23,11 +22,6 @@ const navigationItems = [
         path: "/projects",
     },
     {
-        label: "Feature Flags",
-        icon: Flag,
-        path: "/feature-flags",
-    },
-    {
         label: "Activity",
         icon: History,
         path: "/activity",
@@ -36,14 +30,14 @@ const navigationItems = [
 
 export function Sidebar() {
     return (
-        <aside className="hidden w-64 shrink-0 border-r bg-muted/20 md:block">
+        <aside className="hidden w-64 shrink-0 border-r bg-sidebar md:block">
             <div className="flex min-h-screen flex-col">
-                <div className="border-b p-6">
-                    <h1 className="text-xl font-semibold tracking-tight">
+                <div className="border-b px-6 py-5">
+                    <h1 className="text-lg font-semibold tracking-tight">
                         FlagForge
                     </h1>
 
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                         Feature management
                     </p>
                 </div>
@@ -58,7 +52,7 @@ export function Sidebar() {
                                 to={item.path}
                                 className={({ isActive }) =>
                                     `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${isActive
-                                        ? "bg-muted font-medium"
+                                        ? "bg-foreground text-background font-medium shadow-sm"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     }`
                                 }
@@ -75,7 +69,7 @@ export function Sidebar() {
                         to="/settings"
                         className={({ isActive }) =>
                             `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${isActive
-                                ? "bg-muted font-medium"
+                                ? "bg-foreground text-background font-medium shadow-sm"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`
                         }

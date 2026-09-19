@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,13 @@ export function FeatureFlags() {
 
     const [flags, setFlags] = useState<FeatureFlag[]>([]);
     const [rules, setRules] = useState<Record<string, FlagRule[]>>({});
+
+    const [rolloutDrafts, setRolloutDrafts] = useState<
+        Record<string, string>
+    >({});
+    const [savingRolloutId, setSavingRolloutId] = useState<string | null>(
+        null
+    );
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -155,21 +162,45 @@ export function FeatureFlags() {
         }
     }
 
-    async function handleRolloutChange(
-        flag: FeatureFlag,
+    function handleRolloutChange(
+        flagId: string,
         value: string
     ) {
-        const rolloutPercentage = Number(value);
+        setRolloutDrafts((current) => ({
+            ...current,
+            [flagId]: value,
+        }));
+    }
+
+    async function handleSaveRollout(flag: FeatureFlag) {
+        const draftValue = rolloutDrafts[flag.id];
+
+        if (draftValue === undefined) {
+            return;
+        }
+
+        const rolloutPercentage = Number(draftValue);
 
         if (
             Number.isNaN(rolloutPercentage) ||
             rolloutPercentage < 0 ||
             rolloutPercentage > 100
         ) {
+            setError("Rollout percentage must be between 0 and 100");
+            return;
+        }
+
+        if (rolloutPercentage === flag.rolloutPercentage) {
+            setRolloutDrafts((current) => {
+                const updated = { ...current };
+                delete updated[flag.id];
+                return updated;
+            });
             return;
         }
 
         try {
+            setSavingRolloutId(flag.id);
             setError("");
 
             const updatedFlag = await updateFeatureFlag(
@@ -180,15 +211,25 @@ export function FeatureFlags() {
 
             setFlags((current) =>
                 current.map((item) =>
-                    item.id === updatedFlag.id ? updatedFlag : item
+                    item.id === updatedFlag.id
+                        ? updatedFlag
+                        : item
                 )
             );
+
+            setRolloutDrafts((current) => {
+                const updated = { ...current };
+                delete updated[flag.id];
+                return updated;
+            });
         } catch (error) {
             setError(
                 error instanceof Error
                     ? error.message
                     : "Failed to update rollout"
             );
+        } finally {
+            setSavingRolloutId(null);
         }
     }
 
@@ -327,10 +368,27 @@ export function FeatureFlags() {
                     </p>
                 </div>
 
-                <Button onClick={() => setShowForm((current) => !current)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Flag
-                </Button>
+                <div className="flex items-center gap-2">
+                    {projectId && environmentId && (
+                        <Link
+                            to={`/projects/${projectId}/environments/${environmentId}/evaluate`}
+                        >
+                            <Button variant="outline">
+                                <Play className="mr-2 h-4 w-4" />
+                                Evaluate
+                            </Button>
+                        </Link>
+                    )}
+
+                    <Button
+                        onClick={() =>
+                            setShowForm((current) => !current)
+                        }
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Flag
+                    </Button>
+                </div>
             </div>
 
             {/* Error */}
@@ -451,19 +509,42 @@ export function FeatureFlags() {
                                         </p>
                                     </div>
 
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={flag.rolloutPercentage}
-                                        onChange={(event) =>
-                                            handleRolloutChange(
-                                                flag,
-                                                event.target.value
-                                            )
-                                        }
-                                        className="w-24"
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={
+                                                rolloutDrafts[flag.id] ??
+                                                flag.rolloutPercentage
+                                            }
+                                            onChange={(event) =>
+                                                handleRolloutChange(
+                                                    flag.id,
+                                                    event.target.value
+                                                )
+                                            }
+                                            className="w-24"
+                                        />
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                savingRolloutId === flag.id ||
+                                                rolloutDrafts[flag.id] === undefined ||
+                                                rolloutDrafts[flag.id] ===
+                                                String(flag.rolloutPercentage)
+                                            }
+                                            onClick={() =>
+                                                handleSaveRollout(flag)
+                                            }
+                                        >
+                                            {savingRolloutId === flag.id
+                                                ? "Saving..."
+                                                : "Save"}
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 {/* Targeting rules */}
