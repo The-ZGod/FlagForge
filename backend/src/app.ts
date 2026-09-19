@@ -9,6 +9,7 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { requestLogger } from "./middleware/request-logger.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import featureFlagRuleRoutes from "./modules/feature-flags/feature-flag-rule.routes.js";
+import activityRoutes from "./modules/activity/activity.routes.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/environments", environmentRoutes);
 app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/evaluation", evaluationRoutes);
 app.use("/api/flag-rules", featureFlagRuleRoutes);
+app.use("/api/activity", activityRoutes);
 
 app.use(errorHandler);
 

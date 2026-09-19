@@ -10,6 +10,7 @@ import { Environments } from "@/pages/Environments";
 import { FeatureFlags } from "@/pages/FeatureFlags";
 import { Settings } from "@/pages/Settings";
 import { EvaluationPlayground } from "@/pages/EvaluationPlayground";
+import { Activity } from "@/pages/Activity";
 
 function App() {
   return (
@@ -20,20 +21,28 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+
             <Route path="/projects" element={<Projects />} />
+
             <Route
               path="/projects/:projectId"
               element={<Environments />}
             />
+
             <Route
               path="/projects/:projectId/environments/:environmentId"
               element={<FeatureFlags />}
             />
-            <Route path="/feature-flags" element={<FeatureFlags />} />
+
             <Route
               path="/projects/:projectId/environments/:environmentId/evaluate"
               element={<EvaluationPlayground />}
             />
+
+            <Route path="/activity" element={<Activity />} />
+
+            <Route path="/feature-flags" element={<FeatureFlags />} />
+
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>

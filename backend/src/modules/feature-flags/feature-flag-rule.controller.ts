@@ -36,7 +36,8 @@ export async function createFlagRuleHandler(
         featureFlagId,
         attribute,
         operator,
-        value
+        value,
+        req.userId
     );
 
     res.status(201).json(rule);
@@ -73,7 +74,10 @@ export async function deleteFlagRuleHandler(
         return;
     }
 
-    await deleteFlagRule(ruleId);
+    await deleteFlagRule(
+        ruleId,
+        req.userId
+    );
 
     res.status(204).send();
 }

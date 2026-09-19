@@ -42,3 +42,8 @@ export type FeatureFlag = Prisma.FeatureFlagModel
  * 
  */
 export type FlagRule = Prisma.FlagRuleModel
+/**
+ * Model Activity
+ * 
+ */
+export type Activity = Prisma.ActivityModel

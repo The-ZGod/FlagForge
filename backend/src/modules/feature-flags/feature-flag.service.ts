@@ -1,13 +1,15 @@
 import { prisma } from "../../lib/prisma.js";
+import { createActivity } from "../activity/activity.service.js";
 
 export async function createFeatureFlag(
     environmentId: string,
     name: string,
     key: string,
     enabled: boolean = false,
-    rolloutPercentage: number = 100
+    rolloutPercentage: number = 100,
+    userId: string
 ) {
-    return prisma.featureFlag.create({
+    const flag = await prisma.featureFlag.create({
         data: {
             environmentId,
             name,
@@ -16,6 +18,21 @@ export async function createFeatureFlag(
             rolloutPercentage,
         },
     });
+
+    await createActivity({
+        userId,
+        action: "CREATED",
+        entity: "FEATURE_FLAG",
+        entityId: flag.id,
+        metadata: {
+            name: flag.name,
+            key: flag.key,
+            enabled: flag.enabled,
+            rolloutPercentage: flag.rolloutPercentage,
+        },
+    });
+
+    return flag;
 }
 
 export async function getFeatureFlagsByEnvironment(
@@ -33,28 +50,60 @@ export async function getFeatureFlagsByEnvironment(
 
 export async function updateFeatureFlag(
     flagId: string,
-    enabled?: boolean,
-    rolloutPercentage?: number
+    enabled: boolean | undefined,
+    rolloutPercentage: number | undefined,
+    userId: string
 ) {
-    return prisma.featureFlag.update({
+    const flag = await prisma.featureFlag.update({
         where: {
             id: flagId,
         },
         data: {
             ...(enabled !== undefined && { enabled }),
-            ...(rolloutPercentage !== undefined && { rolloutPercentage }),
+            ...(rolloutPercentage !== undefined && {
+                rolloutPercentage,
+            }),
         },
     });
+
+    await createActivity({
+        userId,
+        action: "UPDATED",
+        entity: "FEATURE_FLAG",
+        entityId: flag.id,
+        metadata: {
+            name: flag.name,
+            key: flag.key,
+            enabled: flag.enabled,
+            rolloutPercentage: flag.rolloutPercentage,
+        },
+    });
+
+    return flag;
 }
 
 export async function deleteFeatureFlag(
-    flagId: string
+    flagId: string,
+    userId: string
 ) {
-    return prisma.featureFlag.delete({
+    const flag = await prisma.featureFlag.delete({
         where: {
             id: flagId,
         },
     });
+
+    await createActivity({
+        userId,
+        action: "DELETED",
+        entity: "FEATURE_FLAG",
+        entityId: flag.id,
+        metadata: {
+            name: flag.name,
+            key: flag.key,
+        },
+    });
+
+    return flag;
 }
 
 export async function getFeatureFlagById(

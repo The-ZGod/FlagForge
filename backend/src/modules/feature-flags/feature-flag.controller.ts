@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import {
     validateFeatureFlagCreation,
     validateFeatureFlagUpdate,
@@ -44,7 +45,8 @@ export async function createFeatureFlagHandler(
         name,
         key,
         enabled,
-        rolloutPercentage
+        rolloutPercentage,
+        req.userId
     );
 
     res.status(201).json(featureFlag);
@@ -98,7 +100,8 @@ export async function updateFeatureFlagHandler(
     const featureFlag = await updateFeatureFlag(
         flagId,
         enabled,
-        rolloutPercentage
+        rolloutPercentage,
+        req.userId
     );
 
     res.json(featureFlag);
@@ -117,7 +120,10 @@ export async function deleteFeatureFlagHandler(
         return;
     }
 
-    await deleteFeatureFlag(flagId);
+    await deleteFeatureFlag(
+        flagId,
+        req.userId
+    );
 
     res.status(204).send();
 }
@@ -146,4 +152,3 @@ export async function getFeatureFlagByIdHandler(
 
     res.json(featureFlag);
 }
-
