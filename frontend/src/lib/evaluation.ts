@@ -20,6 +20,14 @@ export interface EvaluateFlagRequest {
     attributes?: UserAttributes;
 }
 
+export interface EvaluationMetrics {
+    totalEvaluations: number;
+    enabledEvaluations: number;
+    disabledEvaluations: number;
+    averageLatencyMs: number;
+    reasons: Record<EvaluationResult["reason"], number>;
+}
+
 export async function evaluateFlag(
     data: EvaluateFlagRequest
 ): Promise<EvaluationResult> {
@@ -29,5 +37,13 @@ export async function evaluateFlag(
             method: "POST",
             body: JSON.stringify(data),
         }
+    );
+}
+
+export async function getEvaluationMetrics(
+    environmentId: string
+): Promise<EvaluationMetrics> {
+    return apiRequest<EvaluationMetrics>(
+        `/api/evaluation/metrics/${environmentId}`
     );
 }
