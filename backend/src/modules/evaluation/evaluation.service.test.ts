@@ -185,4 +185,91 @@ describe("Evaluation Service", () => {
             });
         });
     });
+
+    describe("evaluateFeatureFlag - evaluation outcomes", () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it("should return FLAG_NOT_FOUND when the flag does not exist", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue(
+                null
+            );
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "missing_flag",
+                "user-123"
+            );
+
+            expect(result).toEqual({
+                enabled: false,
+                reason: "FLAG_NOT_FOUND",
+            });
+        });
+
+        it("should return FLAG_DISABLED when the flag is disabled", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue({
+                key: "new_checkout",
+                enabled: false,
+                rolloutPercentage: 100,
+                rules: [],
+            });
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "new_checkout",
+                "user-123"
+            );
+
+            expect(result).toEqual({
+                enabled: false,
+                reason: "FLAG_DISABLED",
+            });
+        });
+
+        it("should return FULL_ROLLOUT when rollout is 100%", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue({
+                key: "new_checkout",
+                enabled: true,
+                rolloutPercentage: 100,
+                rules: [],
+            });
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "new_checkout",
+                "user-123"
+            );
+
+            expect(result).toEqual({
+                enabled: true,
+                reason: "FULL_ROLLOUT",
+            });
+        });
+
+        it("should evaluate percentage rollout", async () => {
+            (prisma.featureFlag.findUnique as jest.Mock).mockResolvedValue({
+                key: "new_checkout",
+                enabled: true,
+                rolloutPercentage: 50,
+                rules: [],
+            });
+
+            const result = await evaluateFeatureFlag(
+                "environment-123",
+                "new_checkout",
+                "user-123"
+            );
+
+            expect([
+                "PERCENTAGE_ROLLOUT",
+                "PERCENTAGE_ROLLOUT_EXCLUDED",
+            ]).toContain(result.reason);
+
+            expect(result.enabled).toBe(
+                result.reason === "PERCENTAGE_ROLLOUT"
+            );
+        });
+    });
 });
