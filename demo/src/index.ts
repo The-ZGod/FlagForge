@@ -1,8 +1,14 @@
 import { FlagForge } from "../../sdk/dist/index.js";
 
+const apiKey = process.env.FLAGFORGE_API_KEY;
+
+if (!apiKey) {
+    throw new Error("FLAGFORGE_API_KEY is not configured");
+}
+
 const flagforge = new FlagForge({
     apiUrl: "http://localhost:3000",
-    apiKey: "PASTE_YOUR_GENERATED_API_KEY_HERE",
+    apiKey,
 });
 
 const result = await flagforge.evaluate(
