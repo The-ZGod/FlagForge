@@ -4,7 +4,7 @@ export type UserAttributes = Record<string, string>;
 
 export interface FlagForgeConfig {
     apiUrl: string;
-    environmentId: string;
+    apiKey: string;
 }
 
 export interface EvaluationUser {
@@ -23,14 +23,13 @@ export interface EvaluationResult {
     | "TARGETING_RULE_NOT_MATCHED";
 }
 
-
 export class FlagForge {
     private readonly apiUrl: string;
-    private readonly environmentId: string;
+    private readonly apiKey: string;
 
     constructor(config: FlagForgeConfig) {
         this.apiUrl = config.apiUrl.replace(/\/$/, "");
-        this.environmentId = config.environmentId;
+        this.apiKey = config.apiKey;
     }
 
     async isEnabled(
@@ -52,9 +51,9 @@ export class FlagForge {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "X-FlagForge-Key": this.apiKey,
                 },
                 body: JSON.stringify({
-                    environmentId: this.environmentId,
                     flagKey,
                     userId: user.userId,
                     attributes: user.attributes,

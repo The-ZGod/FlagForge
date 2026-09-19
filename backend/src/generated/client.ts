@@ -60,6 +60,11 @@ export type Project = Prisma.ProjectModel
  */
 export type Environment = Prisma.EnvironmentModel
 /**
+ * Model EnvironmentApiKey
+ * 
+ */
+export type EnvironmentApiKey = Prisma.EnvironmentApiKeyModel
+/**
  * Model FeatureFlag
  * 
  */

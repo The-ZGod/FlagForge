@@ -6,18 +6,19 @@ export async function evaluateFeatureFlagHandler(
     res: Response
 ) {
     const {
-        environmentId,
         flagKey,
         userId,
         attributes,
     } = req.body;
 
+    const environmentId = req.environmentId;
+
     if (
         typeof environmentId !== "string" ||
         environmentId.trim().length === 0
     ) {
-        res.status(400).json({
-            message: "environmentId is required",
+        res.status(401).json({
+            message: "Invalid API key",
         });
         return;
     }

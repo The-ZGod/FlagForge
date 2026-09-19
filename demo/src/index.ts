@@ -2,7 +2,7 @@ import { FlagForge } from "../../sdk/dist/index.js";
 
 const flagforge = new FlagForge({
     apiUrl: "http://localhost:3000",
-    environmentId: "cmu5wk3ou0004ky781asafnbk",
+    apiKey: "ff_live_invalid",
 });
 
 const result = await flagforge.evaluate(

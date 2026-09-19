@@ -393,6 +393,7 @@ export const ModelName = {
   User: 'User',
   Project: 'Project',
   Environment: 'Environment',
+  EnvironmentApiKey: 'EnvironmentApiKey',
   FeatureFlag: 'FeatureFlag',
   FlagRule: 'FlagRule',
   Activity: 'Activity'
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "project" | "environment" | "featureFlag" | "flagRule" | "activity"
+    modelProps: "user" | "project" | "environment" | "environmentApiKey" | "featureFlag" | "flagRule" | "activity"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -634,6 +635,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EnvironmentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EnvironmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    EnvironmentApiKey: {
+      payload: Prisma.$EnvironmentApiKeyPayload<ExtArgs>
+      fields: Prisma.EnvironmentApiKeyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EnvironmentApiKeyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EnvironmentApiKeyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        findFirst: {
+          args: Prisma.EnvironmentApiKeyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EnvironmentApiKeyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        findMany: {
+          args: Prisma.EnvironmentApiKeyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>[]
+        }
+        create: {
+          args: Prisma.EnvironmentApiKeyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        createMany: {
+          args: Prisma.EnvironmentApiKeyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EnvironmentApiKeyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>[]
+        }
+        delete: {
+          args: Prisma.EnvironmentApiKeyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        update: {
+          args: Prisma.EnvironmentApiKeyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        deleteMany: {
+          args: Prisma.EnvironmentApiKeyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EnvironmentApiKeyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EnvironmentApiKeyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>[]
+        }
+        upsert: {
+          args: Prisma.EnvironmentApiKeyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnvironmentApiKeyPayload>
+        }
+        aggregate: {
+          args: Prisma.EnvironmentApiKeyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEnvironmentApiKey>
+        }
+        groupBy: {
+          args: Prisma.EnvironmentApiKeyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EnvironmentApiKeyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EnvironmentApiKeyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EnvironmentApiKeyCountAggregateOutputType> | number
         }
       }
     }
@@ -933,6 +1008,18 @@ export const EnvironmentScalarFieldEnum = {
 export type EnvironmentScalarFieldEnum = (typeof EnvironmentScalarFieldEnum)[keyof typeof EnvironmentScalarFieldEnum]
 
 
+export const EnvironmentApiKeyScalarFieldEnum = {
+  id: 'id',
+  keyHash: 'keyHash',
+  keyPrefix: 'keyPrefix',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  environmentId: 'environmentId'
+} as const
+
+export type EnvironmentApiKeyScalarFieldEnum = (typeof EnvironmentApiKeyScalarFieldEnum)[keyof typeof EnvironmentApiKeyScalarFieldEnum]
+
+
 export const FeatureFlagScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1185,6 +1272,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   project?: Prisma.ProjectOmit
   environment?: Prisma.EnvironmentOmit
+  environmentApiKey?: Prisma.EnvironmentApiKeyOmit
   featureFlag?: Prisma.FeatureFlagOmit
   flagRule?: Prisma.FlagRuleOmit
   activity?: Prisma.ActivityOmit

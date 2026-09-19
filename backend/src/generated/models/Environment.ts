@@ -192,6 +192,7 @@ export type EnvironmentWhereInput = {
   projectId?: Prisma.StringFilter<"Environment"> | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   featureFlags?: Prisma.FeatureFlagListRelationFilter
+  apiKey?: Prisma.XOR<Prisma.EnvironmentApiKeyNullableScalarRelationFilter, Prisma.EnvironmentApiKeyWhereInput> | null
 }
 
 export type EnvironmentOrderByWithRelationInput = {
@@ -203,6 +204,7 @@ export type EnvironmentOrderByWithRelationInput = {
   projectId?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
   featureFlags?: Prisma.FeatureFlagOrderByRelationAggregateInput
+  apiKey?: Prisma.EnvironmentApiKeyOrderByWithRelationInput
 }
 
 export type EnvironmentWhereUniqueInput = Prisma.AtLeast<{
@@ -218,6 +220,7 @@ export type EnvironmentWhereUniqueInput = Prisma.AtLeast<{
   projectId?: Prisma.StringFilter<"Environment"> | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   featureFlags?: Prisma.FeatureFlagListRelationFilter
+  apiKey?: Prisma.XOR<Prisma.EnvironmentApiKeyNullableScalarRelationFilter, Prisma.EnvironmentApiKeyWhereInput> | null
 }, "id" | "projectId_key">
 
 export type EnvironmentOrderByWithAggregationInput = {
@@ -252,6 +255,7 @@ export type EnvironmentCreateInput = {
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutEnvironmentsInput
   featureFlags?: Prisma.FeatureFlagCreateNestedManyWithoutEnvironmentInput
+  apiKey?: Prisma.EnvironmentApiKeyCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentUncheckedCreateInput = {
@@ -262,6 +266,7 @@ export type EnvironmentUncheckedCreateInput = {
   updatedAt?: Date | string
   projectId: string
   featureFlags?: Prisma.FeatureFlagUncheckedCreateNestedManyWithoutEnvironmentInput
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentUpdateInput = {
@@ -272,6 +277,7 @@ export type EnvironmentUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutEnvironmentsNestedInput
   featureFlags?: Prisma.FeatureFlagUpdateManyWithoutEnvironmentNestedInput
+  apiKey?: Prisma.EnvironmentApiKeyUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentUncheckedUpdateInput = {
@@ -282,6 +288,7 @@ export type EnvironmentUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   featureFlags?: Prisma.FeatureFlagUncheckedUpdateManyWithoutEnvironmentNestedInput
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentCreateManyInput = {
@@ -399,6 +406,20 @@ export type EnvironmentUncheckedUpdateManyWithoutProjectNestedInput = {
   deleteMany?: Prisma.EnvironmentScalarWhereInput | Prisma.EnvironmentScalarWhereInput[]
 }
 
+export type EnvironmentCreateNestedOneWithoutApiKeyInput = {
+  create?: Prisma.XOR<Prisma.EnvironmentCreateWithoutApiKeyInput, Prisma.EnvironmentUncheckedCreateWithoutApiKeyInput>
+  connectOrCreate?: Prisma.EnvironmentCreateOrConnectWithoutApiKeyInput
+  connect?: Prisma.EnvironmentWhereUniqueInput
+}
+
+export type EnvironmentUpdateOneRequiredWithoutApiKeyNestedInput = {
+  create?: Prisma.XOR<Prisma.EnvironmentCreateWithoutApiKeyInput, Prisma.EnvironmentUncheckedCreateWithoutApiKeyInput>
+  connectOrCreate?: Prisma.EnvironmentCreateOrConnectWithoutApiKeyInput
+  upsert?: Prisma.EnvironmentUpsertWithoutApiKeyInput
+  connect?: Prisma.EnvironmentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EnvironmentUpdateToOneWithWhereWithoutApiKeyInput, Prisma.EnvironmentUpdateWithoutApiKeyInput>, Prisma.EnvironmentUncheckedUpdateWithoutApiKeyInput>
+}
+
 export type EnvironmentCreateNestedOneWithoutFeatureFlagsInput = {
   create?: Prisma.XOR<Prisma.EnvironmentCreateWithoutFeatureFlagsInput, Prisma.EnvironmentUncheckedCreateWithoutFeatureFlagsInput>
   connectOrCreate?: Prisma.EnvironmentCreateOrConnectWithoutFeatureFlagsInput
@@ -420,6 +441,7 @@ export type EnvironmentCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   featureFlags?: Prisma.FeatureFlagCreateNestedManyWithoutEnvironmentInput
+  apiKey?: Prisma.EnvironmentApiKeyCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentUncheckedCreateWithoutProjectInput = {
@@ -429,6 +451,7 @@ export type EnvironmentUncheckedCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   featureFlags?: Prisma.FeatureFlagUncheckedCreateNestedManyWithoutEnvironmentInput
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentCreateOrConnectWithoutProjectInput = {
@@ -469,6 +492,62 @@ export type EnvironmentScalarWhereInput = {
   projectId?: Prisma.StringFilter<"Environment"> | string
 }
 
+export type EnvironmentCreateWithoutApiKeyInput = {
+  id?: string
+  name: string
+  key: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutEnvironmentsInput
+  featureFlags?: Prisma.FeatureFlagCreateNestedManyWithoutEnvironmentInput
+}
+
+export type EnvironmentUncheckedCreateWithoutApiKeyInput = {
+  id?: string
+  name: string
+  key: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projectId: string
+  featureFlags?: Prisma.FeatureFlagUncheckedCreateNestedManyWithoutEnvironmentInput
+}
+
+export type EnvironmentCreateOrConnectWithoutApiKeyInput = {
+  where: Prisma.EnvironmentWhereUniqueInput
+  create: Prisma.XOR<Prisma.EnvironmentCreateWithoutApiKeyInput, Prisma.EnvironmentUncheckedCreateWithoutApiKeyInput>
+}
+
+export type EnvironmentUpsertWithoutApiKeyInput = {
+  update: Prisma.XOR<Prisma.EnvironmentUpdateWithoutApiKeyInput, Prisma.EnvironmentUncheckedUpdateWithoutApiKeyInput>
+  create: Prisma.XOR<Prisma.EnvironmentCreateWithoutApiKeyInput, Prisma.EnvironmentUncheckedCreateWithoutApiKeyInput>
+  where?: Prisma.EnvironmentWhereInput
+}
+
+export type EnvironmentUpdateToOneWithWhereWithoutApiKeyInput = {
+  where?: Prisma.EnvironmentWhereInput
+  data: Prisma.XOR<Prisma.EnvironmentUpdateWithoutApiKeyInput, Prisma.EnvironmentUncheckedUpdateWithoutApiKeyInput>
+}
+
+export type EnvironmentUpdateWithoutApiKeyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutEnvironmentsNestedInput
+  featureFlags?: Prisma.FeatureFlagUpdateManyWithoutEnvironmentNestedInput
+}
+
+export type EnvironmentUncheckedUpdateWithoutApiKeyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  featureFlags?: Prisma.FeatureFlagUncheckedUpdateManyWithoutEnvironmentNestedInput
+}
+
 export type EnvironmentCreateWithoutFeatureFlagsInput = {
   id?: string
   name: string
@@ -476,6 +555,7 @@ export type EnvironmentCreateWithoutFeatureFlagsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutEnvironmentsInput
+  apiKey?: Prisma.EnvironmentApiKeyCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentUncheckedCreateWithoutFeatureFlagsInput = {
@@ -485,6 +565,7 @@ export type EnvironmentUncheckedCreateWithoutFeatureFlagsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId: string
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedCreateNestedOneWithoutEnvironmentInput
 }
 
 export type EnvironmentCreateOrConnectWithoutFeatureFlagsInput = {
@@ -510,6 +591,7 @@ export type EnvironmentUpdateWithoutFeatureFlagsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutEnvironmentsNestedInput
+  apiKey?: Prisma.EnvironmentApiKeyUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentUncheckedUpdateWithoutFeatureFlagsInput = {
@@ -519,6 +601,7 @@ export type EnvironmentUncheckedUpdateWithoutFeatureFlagsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentCreateManyProjectInput = {
@@ -536,6 +619,7 @@ export type EnvironmentUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   featureFlags?: Prisma.FeatureFlagUpdateManyWithoutEnvironmentNestedInput
+  apiKey?: Prisma.EnvironmentApiKeyUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentUncheckedUpdateWithoutProjectInput = {
@@ -545,6 +629,7 @@ export type EnvironmentUncheckedUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   featureFlags?: Prisma.FeatureFlagUncheckedUpdateManyWithoutEnvironmentNestedInput
+  apiKey?: Prisma.EnvironmentApiKeyUncheckedUpdateOneWithoutEnvironmentNestedInput
 }
 
 export type EnvironmentUncheckedUpdateManyWithoutProjectInput = {
@@ -595,6 +680,7 @@ export type EnvironmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   projectId?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   featureFlags?: boolean | Prisma.Environment$featureFlagsArgs<ExtArgs>
+  apiKey?: boolean | Prisma.Environment$apiKeyArgs<ExtArgs>
   _count?: boolean | Prisma.EnvironmentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["environment"]>
 
@@ -631,6 +717,7 @@ export type EnvironmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type EnvironmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   featureFlags?: boolean | Prisma.Environment$featureFlagsArgs<ExtArgs>
+  apiKey?: boolean | Prisma.Environment$apiKeyArgs<ExtArgs>
   _count?: boolean | Prisma.EnvironmentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EnvironmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -645,6 +732,7 @@ export type $EnvironmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     project: Prisma.$ProjectPayload<ExtArgs>
     featureFlags: Prisma.$FeatureFlagPayload<ExtArgs>[]
+    apiKey: Prisma.$EnvironmentApiKeyPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1049,6 +1137,7 @@ export interface Prisma__EnvironmentClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   featureFlags<T extends Prisma.Environment$featureFlagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Environment$featureFlagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeatureFlagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  apiKey<T extends Prisma.Environment$apiKeyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Environment$apiKeyArgs<ExtArgs>>): Prisma.Prisma__EnvironmentApiKeyClient<runtime.Types.Result.GetResult<Prisma.$EnvironmentApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1501,6 +1590,25 @@ export type Environment$featureFlagsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.FeatureFlagScalarFieldEnum | Prisma.FeatureFlagScalarFieldEnum[]
+}
+
+/**
+ * Environment.apiKey
+ */
+export type Environment$apiKeyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EnvironmentApiKey
+   */
+  select?: Prisma.EnvironmentApiKeySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EnvironmentApiKey
+   */
+  omit?: Prisma.EnvironmentApiKeyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EnvironmentApiKeyInclude<ExtArgs> | null
+  where?: Prisma.EnvironmentApiKeyWhereInput
 }
 
 /**

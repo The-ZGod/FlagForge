@@ -10,6 +10,7 @@ import { requestLogger } from "./middleware/request-logger.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import featureFlagRuleRoutes from "./modules/feature-flags/feature-flag-rule.routes.js";
 import activityRoutes from "./modules/activity/activity.routes.js";
+import apiKeyRoutes from "./modules/api-keys/api-key.routes.js";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/evaluation", evaluationRoutes);
 app.use("/api/flag-rules", featureFlagRuleRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/api-keys", apiKeyRoutes);
 
 app.use(errorHandler);
 

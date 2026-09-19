@@ -52,6 +52,7 @@ export const ModelName = {
   User: 'User',
   Project: 'Project',
   Environment: 'Environment',
+  EnvironmentApiKey: 'EnvironmentApiKey',
   FeatureFlag: 'FeatureFlag',
   FlagRule: 'FlagRule',
   Activity: 'Activity'
@@ -106,6 +107,18 @@ export const EnvironmentScalarFieldEnum = {
 } as const
 
 export type EnvironmentScalarFieldEnum = (typeof EnvironmentScalarFieldEnum)[keyof typeof EnvironmentScalarFieldEnum]
+
+
+export const EnvironmentApiKeyScalarFieldEnum = {
+  id: 'id',
+  keyHash: 'keyHash',
+  keyPrefix: 'keyPrefix',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  environmentId: 'environmentId'
+} as const
+
+export type EnvironmentApiKeyScalarFieldEnum = (typeof EnvironmentApiKeyScalarFieldEnum)[keyof typeof EnvironmentApiKeyScalarFieldEnum]
 
 
 export const FeatureFlagScalarFieldEnum = {

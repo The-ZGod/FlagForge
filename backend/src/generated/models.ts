@@ -11,6 +11,7 @@
 export type * from './models/User.js'
 export type * from './models/Project.js'
 export type * from './models/Environment.js'
+export type * from './models/EnvironmentApiKey.js'
 export type * from './models/FeatureFlag.js'
 export type * from './models/FlagRule.js'
 export type * from './models/Activity.js'
