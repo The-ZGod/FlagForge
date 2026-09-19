@@ -56,6 +56,17 @@ export async function evaluateFeatureFlagHandler(
         return;
     }
 
+    if (attributes !== undefined) {
+        for (const value of Object.values(attributes)) {
+            if (typeof value !== "string") {
+                res.status(400).json({
+                    message: "attribute values must be strings",
+                });
+                return;
+            }
+        }
+    }
+
     const result = await evaluateFeatureFlag(
         environmentId,
         flagKey,
