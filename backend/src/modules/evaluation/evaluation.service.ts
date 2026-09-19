@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
+import { performance } from "node:perf_hooks";
+
 import { prisma } from "../../lib/prisma.js";
+import { recordEvaluation } from "./evaluation.metrics.js";
+
 import type {
     EvaluationResult,
     UserAttributes,
@@ -72,6 +76,22 @@ export async function evaluateFeatureFlag(
     userId: string,
     attributes: UserAttributes = {}
 ): Promise<EvaluationResult> {
+    const startTime = performance.now();
+
+    function finishEvaluation(
+        result: EvaluationResult
+    ): EvaluationResult {
+        const latencyMs = performance.now() - startTime;
+
+        recordEvaluation(
+            environmentId,
+            result,
+            latencyMs
+        );
+
+        return result;
+    }
+
     const flag = await prisma.featureFlag.findUnique({
         where: {
             environmentId_key: {
@@ -85,17 +105,17 @@ export async function evaluateFeatureFlag(
     });
 
     if (!flag) {
-        return {
+        return finishEvaluation({
             enabled: false,
             reason: "FLAG_NOT_FOUND",
-        };
+        });
     }
 
     if (!flag.enabled) {
-        return {
+        return finishEvaluation({
             enabled: false,
             reason: "FLAG_DISABLED",
-        };
+        });
     }
 
     const rulesMatch = evaluateRules(
@@ -104,30 +124,33 @@ export async function evaluateFeatureFlag(
     );
 
     if (!rulesMatch) {
-        return {
+        return finishEvaluation({
             enabled: false,
             reason: "TARGETING_RULE_NOT_MATCHED",
-        };
+        });
     }
 
     if (flag.rolloutPercentage >= 100) {
-        return {
+        return finishEvaluation({
             enabled: true,
             reason: "FULL_ROLLOUT",
-        };
+        });
     }
 
-    const bucket = getRolloutBucket(userId, flag.key);
+    const bucket = getRolloutBucket(
+        userId,
+        flag.key
+    );
 
     const enabled = isBucketInRollout(
         bucket,
         flag.rolloutPercentage
     );
 
-    return {
+    return finishEvaluation({
         enabled,
         reason: enabled
             ? "PERCENTAGE_ROLLOUT"
             : "PERCENTAGE_ROLLOUT_EXCLUDED",
-    };
+    });
 }

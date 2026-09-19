@@ -6,6 +6,7 @@ import { authenticateApiKey } from "../../middleware/api-key-auth.js";
 import {
     evaluateFeatureFlagHandler,
     evaluateFeatureFlagDashboardHandler,
+    getEvaluationMetricsHandler,
 } from "./evaluation.controller.js";
 
 const router = Router();
@@ -22,6 +23,12 @@ router.post(
     "/dashboard",
     authenticate,
     evaluateFeatureFlagDashboardHandler
+);
+
+router.get(
+    "/metrics/:environmentId",
+    authenticate,
+    getEvaluationMetricsHandler
 );
 
 export default router;

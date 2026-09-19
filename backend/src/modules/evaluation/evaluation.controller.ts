@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
 
 import { evaluateFeatureFlag } from "./evaluation.service.js";
+import { getEvaluationMetrics } from "./evaluation.metrics.js";
 import { environmentBelongsToUser } from "../feature-flags/feature-flag.service.js";
+
 
 function validateEvaluationInput(
     flagKey: unknown,
@@ -145,4 +147,37 @@ export async function evaluateFeatureFlagDashboardHandler(
     );
 
     res.json(result);
+}
+
+export async function getEvaluationMetricsHandler(
+    req: Request,
+    res: Response
+) {
+    const { environmentId } = req.params;
+
+    if (
+        typeof environmentId !== "string" ||
+        environmentId.trim().length === 0
+    ) {
+        res.status(400).json({
+            message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    const hasAccess = await environmentBelongsToUser(
+        environmentId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
+        });
+        return;
+    }
+
+    const metrics = getEvaluationMetrics(environmentId);
+
+    res.json(metrics);
 }
