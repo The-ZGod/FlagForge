@@ -48,6 +48,40 @@ export async function getFlagRules(
     });
 }
 
+export async function updateFlagRule(
+    ruleId: string,
+    attribute: string,
+    operator: RuleOperator,
+    value: string,
+    userId: string
+) {
+    const rule = await prisma.flagRule.update({
+        where: {
+            id: ruleId,
+        },
+        data: {
+            attribute,
+            operator,
+            value,
+        },
+    });
+
+    await createActivity({
+        userId,
+        action: "UPDATED",
+        entity: "FLAG_RULE",
+        entityId: rule.id,
+        metadata: {
+            featureFlagId: rule.featureFlagId,
+            attribute,
+            operator,
+            value,
+        },
+    });
+
+    return rule;
+}
+
 export async function deleteFlagRule(
     ruleId: string,
     userId: string

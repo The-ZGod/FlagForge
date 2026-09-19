@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
     createFlagRuleHandler,
     getFlagRulesHandler,
+    updateFlagRuleHandler,
     deleteFlagRuleHandler,
 } from "./feature-flag-rule.controller.js";
 
@@ -20,6 +21,12 @@ router.get(
     "/flag/:featureFlagId",
     authenticate,
     getFlagRulesHandler
+);
+
+router.patch(
+    "/:ruleId",
+    authenticate,
+    updateFlagRuleHandler
 );
 
 router.delete(

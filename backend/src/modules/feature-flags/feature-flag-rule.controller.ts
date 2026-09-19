@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import {
     createFlagRule,
     getFlagRules,
+    updateFlagRule,
     deleteFlagRule,
     featureFlagBelongsToUser,
     flagRuleBelongsToUser,
@@ -87,6 +88,63 @@ export async function getFlagRulesHandler(
     const rules = await getFlagRules(featureFlagId);
 
     res.json(rules);
+}
+
+export async function updateFlagRuleHandler(
+    req: Request,
+    res: Response
+) {
+    const { ruleId } = req.params;
+
+    const {
+        attribute,
+        operator,
+        value,
+    } = req.body;
+
+    if (typeof ruleId !== "string") {
+        res.status(400).json({
+            message: "Invalid ruleId",
+        });
+        return;
+    }
+
+    const validationError =
+        validateFlagRuleCreation(
+            "existing-rule",
+            attribute,
+            operator,
+            value
+        );
+
+    if (validationError) {
+        res.status(400).json({
+            message: validationError,
+        });
+        return;
+    }
+
+    const hasAccess = await flagRuleBelongsToUser(
+        ruleId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this rule",
+        });
+        return;
+    }
+
+    const rule = await updateFlagRule(
+        ruleId,
+        attribute,
+        operator,
+        value,
+        req.userId
+    );
+
+    res.json(rule);
 }
 
 export async function deleteFlagRuleHandler(

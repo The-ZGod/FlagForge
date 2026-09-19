@@ -36,6 +36,25 @@ export async function createFlagRule(
     });
 }
 
+export async function updateFlagRule(
+    ruleId: string,
+    attribute: string,
+    operator: RuleOperator,
+    value: string
+): Promise<FlagRule> {
+    return apiRequest<FlagRule>(
+        `/api/flag-rules/${ruleId}`,
+        {
+            method: "PATCH",
+            body: JSON.stringify({
+                attribute,
+                operator,
+                value,
+            }),
+        }
+    );
+}
+
 export async function deleteFlagRule(
     ruleId: string
 ): Promise<void> {

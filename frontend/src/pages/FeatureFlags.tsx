@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Play, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import {
     createFlagRule,
     deleteFlagRule,
     getFlagRules,
+    updateFlagRule,
     type FlagRule,
     type RuleOperator,
 } from "@/lib/flag-rules";
@@ -51,6 +52,9 @@ export function FeatureFlags() {
         useState<RuleOperator>("EQUALS");
     const [ruleValue, setRuleValue] = useState("");
     const [creatingRule, setCreatingRule] = useState(false);
+
+    const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+    const [updatingRule, setUpdatingRule] = useState(false);
 
     async function loadRulesForFlag(flagId: string) {
         try {
@@ -310,6 +314,60 @@ export function FeatureFlags() {
         }
     }
 
+    function openEditRule(rule: FlagRule) {
+        setEditingRuleId(rule.id);
+        setRuleFlagId(rule.featureFlagId);
+        setRuleAttribute(rule.attribute);
+        setRuleOperator(rule.operator);
+        setRuleValue(rule.value);
+        setError("");
+    }
+
+    function closeEditRule() {
+        setEditingRuleId(null);
+        setRuleFlagId(null);
+        setRuleAttribute("");
+        setRuleOperator("EQUALS");
+        setRuleValue("");
+    }
+
+    async function handleUpdateRule(
+        event: React.FormEvent<HTMLFormElement>
+    ) {
+        event.preventDefault();
+
+        if (!editingRuleId || !ruleFlagId) return;
+
+        try {
+            setUpdatingRule(true);
+            setError("");
+
+            const updatedRule = await updateFlagRule(
+                editingRuleId,
+                ruleAttribute,
+                ruleOperator,
+                ruleValue
+            );
+
+            setRules((current) => ({
+                ...current,
+                [ruleFlagId]: (current[ruleFlagId] ?? []).map((rule) =>
+                    rule.id === updatedRule.id ? updatedRule : rule
+                ),
+            }));
+
+            closeEditRule();
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to update targeting rule"
+            );
+        } finally {
+            setUpdatingRule(false);
+        }
+    }
+
     async function handleDeleteRule(
         flagId: string,
         ruleId: string
@@ -560,7 +618,7 @@ export function FeatureFlags() {
                                             </p>
                                         </div>
 
-                                        {ruleFlagId !== flag.id && (
+                                        {ruleFlagId !== flag.id && editingRuleId === null && (
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -573,7 +631,7 @@ export function FeatureFlags() {
                                     </div>
 
                                     {/* Create rule form */}
-                                    {ruleFlagId === flag.id && (
+                                    {ruleFlagId === flag.id && editingRuleId === null && (
                                         <form
                                             onSubmit={handleCreateRule}
                                             className="mt-4 rounded-lg border bg-muted/20 p-4"
@@ -662,6 +720,101 @@ export function FeatureFlags() {
                                         </form>
                                     )}
 
+                                    {editingRuleId && ruleFlagId === flag.id && (
+                                        <form
+                                            onSubmit={handleUpdateRule}
+                                            className="mt-4 rounded-lg border bg-muted/20 p-4"
+                                        >
+                                            <div className="mb-4">
+                                                <p className="text-sm font-medium">
+                                                    Edit Targeting Rule
+                                                </p>
+
+                                                <p className="text-xs text-muted-foreground">
+                                                    Update the attribute, operator, or value.
+                                                </p>
+                                            </div>
+
+                                            <div className="grid gap-4 md:grid-cols-3">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`edit-attribute-${flag.id}`}>
+                                                        Attribute
+                                                    </Label>
+
+                                                    <Input
+                                                        id={`edit-attribute-${flag.id}`}
+                                                        value={ruleAttribute}
+                                                        onChange={(event) =>
+                                                            setRuleAttribute(event.target.value)
+                                                        }
+                                                        placeholder="country"
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`edit-operator-${flag.id}`}>
+                                                        Operator
+                                                    </Label>
+
+                                                    <select
+                                                        id={`edit-operator-${flag.id}`}
+                                                        value={ruleOperator}
+                                                        onChange={(event) =>
+                                                            setRuleOperator(
+                                                                event.target.value as RuleOperator
+                                                            )
+                                                        }
+                                                        className="flex h-9 w-full rounded-md border bg-background px-3 py-1 text-sm shadow-xs outline-none"
+                                                    >
+                                                        <option value="EQUALS">
+                                                            EQUALS
+                                                        </option>
+
+                                                        <option value="NOT_EQUALS">
+                                                            NOT_EQUALS
+                                                        </option>
+                                                    </select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`edit-value-${flag.id}`}>
+                                                        Value
+                                                    </Label>
+
+                                                    <Input
+                                                        id={`edit-value-${flag.id}`}
+                                                        value={ruleValue}
+                                                        onChange={(event) =>
+                                                            setRuleValue(event.target.value)
+                                                        }
+                                                        placeholder="IN"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex gap-2">
+                                                <Button
+                                                    type="submit"
+                                                    size="sm"
+                                                    disabled={updatingRule}
+                                                >
+                                                    {updatingRule ? "Saving..." : "Save Changes"}
+                                                </Button>
+
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={closeEditRule}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </form>
+                                    )}
+
                                     {/* Existing rules */}
                                     <div className="mt-3 space-y-2">
                                         {(rules[flag.id] ?? []).length === 0 ? (
@@ -686,19 +839,30 @@ export function FeatureFlags() {
                                                         </span>
                                                     </p>
 
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            handleDeleteRule(
-                                                                flag.id,
-                                                                rule.id
-                                                            )
-                                                        }
-                                                        aria-label="Delete rule"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openEditRule(rule)}
+                                                            aria-label="Edit rule"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                handleDeleteRule(
+                                                                    flag.id,
+                                                                    rule.id
+                                                                )
+                                                            }
+                                                            aria-label="Delete rule"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             ))
                                         )}
