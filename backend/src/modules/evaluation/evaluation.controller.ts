@@ -1,5 +1,50 @@
 import type { Request, Response } from "express";
+
 import { evaluateFeatureFlag } from "./evaluation.service.js";
+import { environmentBelongsToUser } from "../feature-flags/feature-flag.service.js";
+
+function validateEvaluationInput(
+    flagKey: unknown,
+    userId: unknown,
+    attributes: unknown
+): string | null {
+    if (
+        typeof flagKey !== "string" ||
+        flagKey.trim().length === 0
+    ) {
+        return "flagKey is required";
+    }
+
+    if (
+        typeof userId !== "string" ||
+        userId.trim().length === 0
+    ) {
+        return "userId is required";
+    }
+
+    if (
+        attributes !== undefined &&
+        (
+            typeof attributes !== "object" ||
+            attributes === null ||
+            Array.isArray(attributes)
+        )
+    ) {
+        return "attributes must be an object";
+    }
+
+    if (attributes !== undefined) {
+        for (const value of Object.values(
+            attributes as Record<string, unknown>
+        )) {
+            if (typeof value !== "string") {
+                return "attribute values must be strings";
+            }
+        }
+    }
+
+    return null;
+}
 
 export async function evaluateFeatureFlagHandler(
     req: Request,
@@ -23,49 +68,73 @@ export async function evaluateFeatureFlagHandler(
         return;
     }
 
-    if (
-        typeof flagKey !== "string" ||
-        flagKey.trim().length === 0
-    ) {
+    const validationError = validateEvaluationInput(
+        flagKey,
+        userId,
+        attributes
+    );
+
+    if (validationError) {
         res.status(400).json({
-            message: "flagKey is required",
+            message: validationError,
         });
         return;
     }
 
+    const result = await evaluateFeatureFlag(
+        environmentId,
+        flagKey,
+        userId,
+        attributes
+    );
+
+    res.json(result);
+}
+
+export async function evaluateFeatureFlagDashboardHandler(
+    req: Request,
+    res: Response
+) {
+    const {
+        environmentId,
+        flagKey,
+        userId,
+        attributes,
+    } = req.body;
+
     if (
-        typeof userId !== "string" ||
-        userId.trim().length === 0
+        typeof environmentId !== "string" ||
+        environmentId.trim().length === 0
     ) {
         res.status(400).json({
-            message: "userId is required",
+            message: "environmentId is required",
         });
         return;
     }
 
-    if (
-        attributes !== undefined &&
-        (
-            typeof attributes !== "object" ||
-            attributes === null ||
-            Array.isArray(attributes)
-        )
-    ) {
+    const validationError = validateEvaluationInput(
+        flagKey,
+        userId,
+        attributes
+    );
+
+    if (validationError) {
         res.status(400).json({
-            message: "attributes must be an object",
+            message: validationError,
         });
         return;
     }
 
-    if (attributes !== undefined) {
-        for (const value of Object.values(attributes)) {
-            if (typeof value !== "string") {
-                res.status(400).json({
-                    message: "attribute values must be strings",
-                });
-                return;
-            }
-        }
+    const hasAccess = await environmentBelongsToUser(
+        environmentId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
+        });
+        return;
     }
 
     const result = await evaluateFeatureFlag(

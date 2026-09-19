@@ -23,8 +23,11 @@ export interface EvaluateFlagRequest {
 export async function evaluateFlag(
     data: EvaluateFlagRequest
 ): Promise<EvaluationResult> {
-    return apiRequest<EvaluationResult>("/api/evaluation", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+    return apiRequest<EvaluationResult>(
+        "/api/evaluation/dashboard",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
