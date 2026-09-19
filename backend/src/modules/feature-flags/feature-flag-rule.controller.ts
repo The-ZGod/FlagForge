@@ -1,9 +1,13 @@
 import type { Request, Response } from "express";
+
 import {
     createFlagRule,
     getFlagRules,
     deleteFlagRule,
+    featureFlagBelongsToUser,
+    flagRuleBelongsToUser,
 } from "./feature-flag-rule.service.js";
+
 import { validateFlagRuleCreation } from "./feature-flag.validation.js";
 
 export async function createFlagRuleHandler(
@@ -32,6 +36,18 @@ export async function createFlagRuleHandler(
         return;
     }
 
+    const hasAccess = await featureFlagBelongsToUser(
+        featureFlagId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this feature flag",
+        });
+        return;
+    }
+
     const rule = await createFlagRule(
         featureFlagId,
         attribute,
@@ -56,6 +72,18 @@ export async function getFlagRulesHandler(
         return;
     }
 
+    const hasAccess = await featureFlagBelongsToUser(
+        featureFlagId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this feature flag",
+        });
+        return;
+    }
+
     const rules = await getFlagRules(featureFlagId);
 
     res.json(rules);
@@ -70,6 +98,18 @@ export async function deleteFlagRuleHandler(
     if (typeof ruleId !== "string") {
         res.status(400).json({
             message: "Invalid ruleId",
+        });
+        return;
+    }
+
+    const hasAccess = await flagRuleBelongsToUser(
+        ruleId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this rule",
         });
         return;
     }

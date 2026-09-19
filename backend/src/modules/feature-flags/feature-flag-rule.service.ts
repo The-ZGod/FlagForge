@@ -73,3 +73,47 @@ export async function deleteFlagRule(
 
     return rule;
 }
+
+export async function featureFlagBelongsToUser(
+    featureFlagId: string,
+    userId: string
+) {
+    const featureFlag = await prisma.featureFlag.findFirst({
+        where: {
+            id: featureFlagId,
+            environment: {
+                project: {
+                    ownerId: userId,
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return featureFlag !== null;
+}
+
+export async function flagRuleBelongsToUser(
+    ruleId: string,
+    userId: string
+) {
+    const rule = await prisma.flagRule.findFirst({
+        where: {
+            id: ruleId,
+            featureFlag: {
+                environment: {
+                    project: {
+                        ownerId: userId,
+                    },
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return rule !== null;
+}

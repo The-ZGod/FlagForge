@@ -115,3 +115,43 @@ export async function getFeatureFlagById(
         },
     });
 }
+
+export async function featureFlagBelongsToUser(
+    flagId: string,
+    userId: string
+) {
+    const featureFlag = await prisma.featureFlag.findFirst({
+        where: {
+            id: flagId,
+            environment: {
+                project: {
+                    ownerId: userId,
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return featureFlag !== null;
+}
+
+export async function environmentBelongsToUser(
+    environmentId: string,
+    userId: string
+) {
+    const environment = await prisma.environment.findFirst({
+        where: {
+            id: environmentId,
+            project: {
+                ownerId: userId,
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return environment !== null;
+}

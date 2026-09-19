@@ -11,6 +11,8 @@ import {
     updateFeatureFlag,
     deleteFeatureFlag,
     getFeatureFlagById,
+    environmentBelongsToUser,
+    featureFlagBelongsToUser,
 } from "./feature-flag.service.js";
 
 export async function createFeatureFlagHandler(
@@ -40,6 +42,18 @@ export async function createFeatureFlagHandler(
         return;
     }
 
+    const hasAccess = await environmentBelongsToUser(
+        environmentId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
+        });
+        return;
+    }
+
     const featureFlag = await createFeatureFlag(
         environmentId,
         name,
@@ -61,6 +75,18 @@ export async function getFeatureFlagsHandler(
     if (typeof environmentId !== "string") {
         res.status(400).json({
             message: "Invalid environmentId",
+        });
+        return;
+    }
+
+    const hasAccess = await environmentBelongsToUser(
+        environmentId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this environment",
         });
         return;
     }
@@ -97,6 +123,18 @@ export async function updateFeatureFlagHandler(
         return;
     }
 
+    const hasAccess = await featureFlagBelongsToUser(
+        flagId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this feature flag",
+        });
+        return;
+    }
+
     const featureFlag = await updateFeatureFlag(
         flagId,
         enabled,
@@ -120,6 +158,18 @@ export async function deleteFeatureFlagHandler(
         return;
     }
 
+    const hasAccess = await featureFlagBelongsToUser(
+        flagId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this feature flag",
+        });
+        return;
+    }
+
     await deleteFeatureFlag(
         flagId,
         req.userId
@@ -137,6 +187,18 @@ export async function getFeatureFlagByIdHandler(
     if (typeof flagId !== "string") {
         res.status(400).json({
             message: "Invalid flagId",
+        });
+        return;
+    }
+
+    const hasAccess = await featureFlagBelongsToUser(
+        flagId,
+        req.userId
+    );
+
+    if (!hasAccess) {
+        res.status(403).json({
+            message: "You do not have access to this feature flag",
         });
         return;
     }
