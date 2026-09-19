@@ -11,6 +11,7 @@ import { FeatureFlags } from "@/pages/FeatureFlags";
 import { Settings } from "@/pages/Settings";
 import { EvaluationPlayground } from "@/pages/EvaluationPlayground";
 import { Activity } from "@/pages/Activity";
+import { FeatureFlagDetail } from "@/pages/FeatureFlagDetail";
 
 function App() {
   return (
@@ -37,6 +38,11 @@ function App() {
             <Route
               path="/projects/:projectId/environments/:environmentId/evaluate"
               element={<EvaluationPlayground />}
+            />
+
+            <Route
+              path="/projects/:projectId/environments/:environmentId/flags/:flagId"
+              element={<FeatureFlagDetail />}
             />
 
             <Route path="/activity" element={<Activity />} />

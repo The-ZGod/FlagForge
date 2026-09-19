@@ -19,6 +19,14 @@ export async function getFeatureFlags(
     );
 }
 
+export async function getFeatureFlag(
+    flagId: string
+): Promise<FeatureFlag> {
+    return apiRequest<FeatureFlag>(
+        `/api/feature-flags/${flagId}`
+    );
+}
+
 export async function createFeatureFlag(
     environmentId: string,
     name: string,

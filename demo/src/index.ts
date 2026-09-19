@@ -12,9 +12,9 @@ const flagforge = new FlagForge({
 });
 
 const result = await flagforge.evaluate(
-    "new_checkout",
+    "dark_mode",
     {
-        userId: "customer-001",
+        userId: "user-123",
         attributes: {
             country: "IN",
         },

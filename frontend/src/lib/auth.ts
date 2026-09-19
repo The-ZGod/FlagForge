@@ -22,6 +22,26 @@ interface RegisterResponse {
     createdAt: string;
 }
 
+const USER_KEY = "flagforge_user";
+
+export function getCurrentUser(): AuthUser | null {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    try {
+        return JSON.parse(raw) as AuthUser;
+    } catch {
+        return null;
+    }
+}
+
+export function setCurrentUser(user: AuthUser) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+export function clearCurrentUser() {
+    localStorage.removeItem(USER_KEY);
+}
+
 export async function login(
     email: string,
     password: string
@@ -38,6 +58,7 @@ export async function login(
     );
 
     setAccessToken(response.accessToken);
+    setCurrentUser(response.user);
 
     return response.user;
 }
@@ -62,4 +83,5 @@ export async function register(
 
 export function logout() {
     clearAccessToken();
+    clearCurrentUser();
 }
