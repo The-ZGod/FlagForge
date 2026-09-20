@@ -34,15 +34,15 @@ function getActionBadgeVariant(action: string): "default" | "secondary" | "destr
 function getEntityIcon(entity: string) {
     switch (entity.toUpperCase()) {
         case "FEATURE_FLAG":
-            return <Radio className="size-3.5 text-primary" />;
+            return <Radio className="size-4 text-primary" />;
         case "FLAG_RULE":
-            return <Sliders className="size-3.5 text-blue-500" />;
+            return <Sliders className="size-4 text-blue-500" />;
         case "ENVIRONMENT":
-            return <Layers className="size-3.5 text-amber-500" />;
+            return <Layers className="size-4 text-amber-500" />;
         case "PROJECT":
-            return <FolderKanban className="size-3.5 text-purple-500" />;
+            return <FolderKanban className="size-4 text-purple-500" />;
         default:
-            return <ActivityIcon className="size-3.5 text-muted-foreground" />;
+            return <ActivityIcon className="size-4 text-muted-foreground" />;
     }
 }
 
@@ -71,7 +71,7 @@ function getActivityDescription(activity: ActivityRecord) {
         if (name) return `Environment: ${name}`;
     }
 
-    return `ID: ${activity.entityId}`;
+    return `Resource ID: ${activity.entityId}`;
 }
 
 export function Activity() {
@@ -128,18 +128,18 @@ export function Activity() {
             {/* Header */}
             <div>
                 <div className="flex items-center gap-2.5">
-                    <History className="size-5 text-foreground" />
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                    <History className="size-6 text-foreground" />
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                         Audit & Activity Log
                     </h1>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-1">
                     Immutable history of feature flag releases, targeting rule modifications, and environment changes.
                 </p>
             </div>
 
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive flex items-center justify-between">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
                     <span>{error}</span>
                     <button
                         type="button"
@@ -154,22 +154,22 @@ export function Activity() {
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                     <Input
                         placeholder="Search audit trail..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 text-xs h-8.5 bg-card"
+                        className="pl-9.5 text-sm h-9.5 bg-card"
                     />
                 </div>
 
-                <div className="flex items-center gap-1 overflow-x-auto bg-muted/40 p-1 rounded-lg border border-border/60">
+                <div className="flex items-center gap-1 overflow-x-auto bg-muted/40 p-1 rounded-xl border border-border/60">
                     {["ALL", "FEATURE_FLAG", "FLAG_RULE", "ENVIRONMENT", "PROJECT"].map((type) => (
                         <button
                             key={type}
                             type="button"
                             onClick={() => setEntityFilter(type)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${
                                 entityFilter === type
                                     ? "bg-card text-foreground shadow-2xs font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
@@ -192,55 +192,55 @@ export function Activity() {
                 </div>
             ) : activities.length === 0 ? (
                 <Card className="border-dashed border-border/80 bg-muted/20">
-                    <CardContent className="py-12 text-center space-y-2">
-                        <History className="size-8 text-muted-foreground mx-auto opacity-40" />
-                        <h3 className="text-sm font-semibold text-foreground">No Activity Recorded Yet</h3>
-                        <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    <CardContent className="py-14 text-center space-y-2">
+                        <History className="size-10 text-muted-foreground mx-auto opacity-40" />
+                        <h3 className="text-base font-bold text-foreground">No Activity Recorded Yet</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                             Actions like creating flags, updating rollouts, and editing targeting rules will appear here automatically.
                         </p>
                     </CardContent>
                 </Card>
             ) : filteredActivities.length === 0 ? (
                 <Card className="bg-muted/10">
-                    <CardContent className="py-8 text-center text-xs text-muted-foreground">
-                        No activity records matched your filter.
+                    <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                        No activity records match your search filter.
                     </CardContent>
                 </Card>
             ) : (
-                <Card className="shadow-2xs overflow-hidden">
+                <Card className="shadow-xs overflow-hidden border-border/80">
                     <CardContent className="p-0">
                         <div className="divide-y divide-border/60">
                             {filteredActivities.map((act) => (
                                 <div
                                     key={act.id}
-                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-muted/30 transition-colors"
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 gap-3.5 hover:bg-muted/30 transition-colors"
                                 >
-                                    <div className="flex items-start gap-3 min-w-0">
-                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted/80 mt-0.5">
+                                    <div className="flex items-start gap-3.5 min-w-0">
+                                        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-muted/80 mt-0.5">
                                             {getEntityIcon(act.entity)}
                                         </div>
 
                                         <div className="space-y-1 min-w-0">
-                                            <div className="flex items-center gap-2 flex-wrap text-xs">
+                                            <div className="flex items-center gap-2 flex-wrap text-sm">
                                                 <Badge
                                                     variant={getActionBadgeVariant(act.action)}
-                                                    className="text-[10px] uppercase font-mono px-1.5 py-0 h-4"
+                                                    className="text-[10px] uppercase font-mono px-2 py-0.5"
                                                 >
                                                     {formatAction(act.action)}
                                                 </Badge>
-                                                <span className="font-semibold text-foreground">
+                                                <span className="font-bold text-foreground">
                                                     {act.entity.replace("_", " ")}
                                                 </span>
                                             </div>
 
-                                            <p className="text-xs text-muted-foreground font-mono truncate">
+                                            <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">
                                                 {getActivityDescription(act)}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80 shrink-0 self-start sm:self-center">
-                                        <Clock className="size-3" />
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 self-start sm:self-center font-medium">
+                                        <Clock className="size-3.5" />
                                         <time dateTime={act.createdAt} title={new Date(act.createdAt).toISOString()}>
                                             {new Date(act.createdAt).toLocaleString()}
                                         </time>

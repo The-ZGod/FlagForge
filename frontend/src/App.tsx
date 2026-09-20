@@ -3,66 +3,98 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 
+import { LandingPage } from "@/pages/LandingPage";
 import { Login } from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
-import { Projects } from "@/pages/Projects";
 import { Environments } from "@/pages/Environments";
 import { FeatureFlags } from "@/pages/FeatureFlags";
 import { Settings } from "@/pages/Settings";
 import { EvaluationPlayground } from "@/pages/EvaluationPlayground";
 import { Activity } from "@/pages/Activity";
 import { FeatureFlagDetail } from "@/pages/FeatureFlagDetail";
+import { ApiKeys } from "@/pages/ApiKeys";
+import { Docs } from "@/pages/Docs";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* Public Landing Page */}
+                <Route path="/" element={<LandingPage />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+                {/* Public / Semi-Public Routes */}
+                <Route path="/login" element={<Login />} />
 
-            <Route path="/projects" element={<Projects />} />
+                {/* Docs page rendered with AppLayout so users can view docs */}
+                <Route
+                    path="/docs"
+                    element={
+                        <div className="min-h-screen bg-background text-foreground flex flex-col">
+                            <Docs />
+                        </div>
+                    }
+                />
 
-            <Route
-              path="/projects/:projectId"
-              element={<Environments />}
-            />
+                {/* Protected Application Workspace */}
+                <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
 
-            <Route
-              path="/projects/:projectId/environments/:environmentId"
-              element={<FeatureFlags />}
-            />
+                        {/* Redirect legacy /projects to Dashboard */}
+                        <Route
+                            path="/projects"
+                            element={<Navigate to="/dashboard" replace />}
+                        />
 
-            <Route
-              path="/projects/:projectId/environments/:environmentId/evaluate"
-              element={<EvaluationPlayground />}
-            />
+                        <Route
+                            path="/projects/:projectId"
+                            element={<Environments />}
+                        />
 
-            <Route
-              path="/projects/:projectId/environments/:environmentId/flags/:flagId"
-              element={<FeatureFlagDetail />}
-            />
+                        <Route
+                            path="/projects/:projectId/environments/:environmentId"
+                            element={<FeatureFlags />}
+                        />
 
-            <Route path="/activity" element={<Activity />} />
+                        <Route
+                            path="/projects/:projectId/environments/:environmentId/evaluate"
+                            element={<EvaluationPlayground />}
+                        />
 
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-        </Route>
+                        <Route
+                            path="/evaluation"
+                            element={<EvaluationPlayground />}
+                        />
 
-        <Route
-          path="/"
-          element={<Navigate to="/dashboard" replace />}
-        />
+                        <Route
+                            path="/projects/:projectId/environments/:environmentId/flags/:flagId"
+                            element={<FeatureFlagDetail />}
+                        />
 
-        <Route
-          path="*"
-          element={<Navigate to="/dashboard" replace />}
-        />
-      </Routes>
-    </BrowserRouter>
-  );
+                        <Route
+                            path="/projects/:projectId/environments/:environmentId/api-keys"
+                            element={<ApiKeys />}
+                        />
+
+                        <Route
+                            path="/api-keys"
+                            element={<ApiKeys />}
+                        />
+
+                        <Route path="/activity" element={<Activity />} />
+
+                        <Route path="/settings" element={<Settings />} />
+                    </Route>
+                </Route>
+
+                {/* Catch-all fallback */}
+                <Route
+                    path="*"
+                    element={<Navigate to="/dashboard" replace />}
+                />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

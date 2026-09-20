@@ -1,10 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>FlagForge — Feature Platform</title>
+    <script>
+      (function() {
+        try {
+          var storedTheme = localStorage.getItem('flagforge-theme');
+          var theme = storedTheme === 'light' ? 'light' : 'dark';
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

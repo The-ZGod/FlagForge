@@ -10,15 +10,19 @@ import {
     LayoutDashboard,
     LogOut,
     Menu,
+    Moon,
     Plus,
     Radio,
     Settings as SettingsIcon,
     Sliders,
     Sparkles,
+    Sun,
     X,
 } from "lucide-react";
 
 import { getCurrentUser, logout } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { createProject, getProjects, type Project } from "@/lib/projects";
 import {
     createEnvironment,
@@ -32,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function TopNavigation() {
+    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
     const params = useParams();
@@ -261,7 +266,7 @@ export function TopNavigation() {
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}`
             : effectiveProjectId
             ? `/projects/${effectiveProjectId}`
-            : "/projects";
+            : "/dashboard";
 
     // Dynamic destination for evaluation link
     const evaluationPath =
@@ -269,13 +274,25 @@ export function TopNavigation() {
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}/evaluate`
             : effectiveProjectId
             ? `/projects/${effectiveProjectId}`
-            : "/projects";
+            : "/dashboard";
+
+    // Dynamic destination for api-keys link
+    const apiKeysPath =
+        effectiveProjectId && effectiveEnvId
+            ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}/api-keys`
+            : "/api-keys";
 
     const isFeatureFlagsActive =
-        location.pathname.includes("/environments/") &&
-        !location.pathname.includes("/evaluate");
+        (location.pathname.includes("/flags") ||
+            (location.pathname.includes("/environments/") &&
+                !location.pathname.includes("/evaluate") &&
+                !location.pathname.includes("/api-keys"))) &&
+        !location.pathname.includes("/docs");
 
     const isEvaluationActive = location.pathname.includes("/evaluate");
+    const isApiKeysActive = location.pathname.includes("/api-keys");
+    const isDocsActive = location.pathname.startsWith("/docs");
+    const isActivityActive = location.pathname.startsWith("/activity");
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/95 backdrop-blur-md">
@@ -286,32 +303,32 @@ export function TopNavigation() {
                     {/* Brand */}
                     <Link
                         to="/dashboard"
-                        className="flex items-center gap-2 group transition-transform focus:outline-hidden"
+                        className="flex items-center gap-2.5 group transition-transform focus:outline-hidden"
                     >
-                        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs group-hover:scale-105 transition-transform">
+                        <div className="flex size-8.5 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs group-hover:scale-105 transition-transform">
                             <Radio className="size-4.5" />
                         </div>
                         <div className="flex flex-col text-left">
                             <span className="text-sm font-bold tracking-tight text-foreground leading-none">
                                 FlagForge
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                                Feature Management
+                            <span className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                                Feature Platform
                             </span>
                         </div>
                     </Link>
 
-                    <div className="h-4 w-px bg-border hidden sm:block" />
+                    <div className="h-5 w-px bg-border hidden sm:block" />
 
                     {/* Project Selector */}
                     <div className="relative" ref={projectDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
-                            className="flex h-8 items-center gap-2 rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:bg-muted/70 hover:border-border focus:outline-hidden cursor-pointer shadow-2xs"
+                            className="flex h-8.5 items-center gap-2 rounded-lg border border-border/70 bg-card px-3 py-1.5 text-xs sm:text-sm font-medium text-foreground transition-all hover:bg-muted/70 hover:border-border focus:outline-hidden cursor-pointer shadow-2xs"
                         >
-                            <FolderKanban className="size-3.5 text-muted-foreground" />
-                            <span className="max-w-[130px] sm:max-w-[170px] truncate">
+                            <FolderKanban className="size-4 text-muted-foreground" />
+                            <span className="max-w-[120px] sm:max-w-[170px] truncate">
                                 {loadingProjects
                                     ? "Loading..."
                                     : activeProject?.name || "Select project"}
@@ -320,7 +337,7 @@ export function TopNavigation() {
                         </button>
 
                         {projectDropdownOpen && (
-                            <div className="absolute left-0 top-10 z-50 w-64 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
+                            <div className="absolute left-0 top-11 z-50 w-64 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
                                 <div className="px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                                     <span>Projects</span>
                                     <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
@@ -339,7 +356,7 @@ export function TopNavigation() {
                                                 key={project.id}
                                                 type="button"
                                                 onClick={() => handleSelectProject(project)}
-                                                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
+                                                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs sm:text-sm transition-colors cursor-pointer ${
                                                     project.id === effectiveProjectId
                                                         ? "bg-muted font-semibold text-foreground"
                                                         : "text-foreground/80 hover:bg-muted/60 hover:text-foreground"
@@ -357,27 +374,18 @@ export function TopNavigation() {
                                     )}
                                 </div>
 
-                                <div className="border-t border-border pt-1 mt-1 space-y-0.5">
+                                <div className="border-t border-border pt-1 mt-1">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setProjectDropdownOpen(false);
                                             setCreateProjectModalOpen(true);
                                         }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-primary font-medium hover:bg-muted/70 transition-colors cursor-pointer"
+                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-primary font-medium hover:bg-muted/70 transition-colors cursor-pointer"
                                     >
-                                        <Plus className="size-3.5" />
+                                        <Plus className="size-4" />
                                         <span>Create new project</span>
                                     </button>
-
-                                    <Link
-                                        to="/projects"
-                                        onClick={() => setProjectDropdownOpen(false)}
-                                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors"
-                                    >
-                                        <span>Manage all projects</span>
-                                        <ExternalLink className="size-3" />
-                                    </Link>
                                 </div>
                             </div>
                         )}
@@ -385,78 +393,109 @@ export function TopNavigation() {
                 </div>
 
                 {/* Center: Main Navigation Links */}
-                <nav className="hidden md:flex items-center gap-1">
+                <nav className="hidden lg:flex items-center gap-1">
                     <NavLink
                         to="/dashboard"
                         className={({ isActive }) =>
-                            `flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 isActive
                                     ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                             }`
                         }
                     >
-                        <LayoutDashboard className="size-3.5" />
+                        <LayoutDashboard className="size-4" />
                         Dashboard
                     </NavLink>
 
                     <NavLink
                         to={featureFlagsPath}
                         className={() =>
-                            `flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 isFeatureFlagsActive
                                     ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                             }`
                         }
                     >
-                        <Sliders className="size-3.5" />
+                        <Sliders className="size-4" />
                         Feature Flags
                     </NavLink>
 
                     <NavLink
                         to={evaluationPath}
                         className={() =>
-                            `flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 isEvaluationActive
                                     ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                             }`
                         }
                     >
-                        <Sparkles className="size-3.5" />
+                        <Sparkles className="size-4" />
                         Evaluation
                     </NavLink>
 
                     <NavLink
                         to="/activity"
-                        className={({ isActive }) =>
-                            `flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                                isActive
+                        className={() =>
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                                isActivityActive
                                     ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                             }`
                         }
                     >
-                        <History className="size-3.5" />
+                        <History className="size-4" />
                         Activity
+                    </NavLink>
+
+                    <NavLink
+                        to={apiKeysPath}
+                        className={() =>
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                                isApiKeysActive
+                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            }`
+                        }
+                    >
+                        <SettingsIcon className="size-4" />
+                        API Keys
+                    </NavLink>
+
+                    <NavLink
+                        to="/docs"
+                        className={() =>
+                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                                isDocsActive
+                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            }`
+                        }
+                    >
+                        <ExternalLink className="size-4" />
+                        Docs
                     </NavLink>
                 </nav>
 
-                {/* Right: Settings & User Profile Controls */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Right: Theme Toggle, Settings & User Profile Controls */}
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                    {/* Direct Theme Toggle Button */}
+                    <ThemeToggle />
+
                     <NavLink
                         to="/settings"
                         className={({ isActive }) =>
-                            `flex size-8 items-center justify-center rounded-md border border-border/60 transition-colors ${
+                            `flex size-8.5 items-center justify-center rounded-lg border border-border/70 transition-colors ${
                                 isActive
                                     ? "bg-muted text-foreground border-border"
                                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                             }`
                         }
-                        title="Settings"
+                        title="Profile Settings"
                     >
-                        <SettingsIcon className="size-4" />
+                        <SettingsIcon className="size-4.5" />
                     </NavLink>
 
                     {/* User profile dropdown */}
@@ -464,19 +503,19 @@ export function TopNavigation() {
                         <button
                             type="button"
                             onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                            className="flex h-8 items-center gap-1.5 rounded-md border border-border/60 bg-card px-2 text-xs font-medium text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                            className="flex h-8.5 items-center gap-2 rounded-lg border border-border/70 bg-card px-2.5 text-xs sm:text-sm font-medium text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                         >
-                            <div className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-[10px]">
+                            <div className="flex size-5.5 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
                                 {currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : "U"}
                             </div>
-                            <span className="hidden sm:inline max-w-[100px] truncate text-[11px]">
+                            <span className="hidden sm:inline max-w-[110px] truncate text-xs font-semibold">
                                 {currentUser?.name || currentUser?.email?.split("@")[0] || "Account"}
                             </span>
-                            <ChevronDown className="size-3 text-muted-foreground" />
+                            <ChevronDown className="size-3.5 text-muted-foreground" />
                         </button>
 
                         {userDropdownOpen && (
-                            <div className="absolute right-0 top-10 z-50 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
+                            <div className="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
                                 <div className="px-2.5 py-2">
                                     <p className="text-xs font-semibold text-foreground truncate">
                                         {currentUser?.name || "FlagForge User"}
@@ -488,22 +527,31 @@ export function TopNavigation() {
 
                                 <div className="border-t border-border my-1" />
 
+                                <button
+                                    type="button"
+                                    onClick={() => toggleTheme()}
+                                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs sm:text-sm text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {theme === "dark" ? (
+                                            <Sun className="size-4 text-muted-foreground" />
+                                        ) : (
+                                            <Moon className="size-4 text-muted-foreground" />
+                                        )}
+                                        <span>Theme</span>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px] font-semibold h-4.5 px-1.5 capitalize">
+                                        {theme === "dark" ? "Dark" : "Light"}
+                                    </Badge>
+                                </button>
+
                                 <Link
                                     to="/settings"
                                     onClick={() => setUserDropdownOpen(false)}
-                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors"
+                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors"
                                 >
-                                    <SettingsIcon className="size-3.5 text-muted-foreground" />
-                                    <span>Settings & API Keys</span>
-                                </Link>
-
-                                <Link
-                                    to="/projects"
-                                    onClick={() => setUserDropdownOpen(false)}
-                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors"
-                                >
-                                    <FolderKanban className="size-3.5 text-muted-foreground" />
-                                    <span>Projects Overview</span>
+                                    <SettingsIcon className="size-4 text-muted-foreground" />
+                                    <span>Account Profile</span>
                                 </Link>
 
                                 <div className="border-t border-border my-1" />
@@ -514,9 +562,9 @@ export function TopNavigation() {
                                         logout();
                                         window.location.href = "/login";
                                     }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                 >
-                                    <LogOut className="size-3.5" />
+                                    <LogOut className="size-4" />
                                     <span>Sign Out</span>
                                 </button>
                             </div>
@@ -527,56 +575,95 @@ export function TopNavigation() {
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="flex md:hidden size-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="flex lg:hidden size-8.5 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
-                        {mobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+                        {mobileMenuOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
                     </button>
                 </div>
             </div>
 
             {/* Mobile Navigation Drawer */}
             {mobileMenuOpen && (
-                <div className="md:hidden border-t border-border bg-card p-4 space-y-2 animate-in slide-in-from-top-2 duration-150">
+                <div className="lg:hidden border-t border-border bg-card p-4 space-y-1 animate-in slide-in-from-top-2 duration-150">
                     <NavLink
                         to="/dashboard"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                        <LayoutDashboard className="size-4" />
+                        <LayoutDashboard className="size-4.5" />
                         Dashboard
                     </NavLink>
                     <NavLink
                         to={featureFlagsPath}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                        <Sliders className="size-4" />
+                        <Sliders className="size-4.5" />
                         Feature Flags
                     </NavLink>
                     <NavLink
                         to={evaluationPath}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                        <Sparkles className="size-4" />
+                        <Sparkles className="size-4.5" />
                         Evaluation
                     </NavLink>
                     <NavLink
                         to="/activity"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                        <History className="size-4" />
+                        <History className="size-4.5" />
                         Activity
+                    </NavLink>
+                    <NavLink
+                        to={apiKeysPath}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                        <SettingsIcon className="size-4.5" />
+                        API Keys
+                    </NavLink>
+                    <NavLink
+                        to="/docs"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                        <ExternalLink className="size-4.5" />
+                        Docs
                     </NavLink>
                     <NavLink
                         to="/settings"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                        <SettingsIcon className="size-4" />
-                        Settings
+                        <SettingsIcon className="size-4.5" />
+                        Profile Settings
                     </NavLink>
+
+                    <div className="border-t border-border my-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                toggleTheme();
+                                setMobileMenuOpen(false);
+                            }}
+                            className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted cursor-pointer"
+                        >
+                            <div className="flex items-center gap-2.5">
+                                {theme === "dark" ? (
+                                    <Sun className="size-4.5 text-muted-foreground" />
+                                ) : (
+                                    <Moon className="size-4.5 text-muted-foreground" />
+                                )}
+                                <span>Appearance</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs capitalize font-semibold">
+                                {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                            </Badge>
+                        </button>
+                    </div>
                 </div>
             )}
 

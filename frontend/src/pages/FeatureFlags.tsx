@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
-    ArrowLeft,
     Plus,
     Radio,
     Search,
@@ -199,18 +198,8 @@ export function FeatureFlags() {
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    {projectId && (
-                        <Link
-                            to={`/projects/${projectId}`}
-                            className="mb-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <ArrowLeft className="size-3.5" />
-                            <span>Back to environments</span>
-                        </Link>
-                    )}
-
                     <div className="flex items-center gap-3">
-                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                             Feature Flags
                         </h1>
                         {environment && (
@@ -219,18 +208,18 @@ export function FeatureFlags() {
                             </Badge>
                         )}
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Manage feature flags, percentage rollouts, and targeting rules for this environment.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto">
+                <div className="flex items-center gap-2.5 self-start sm:self-auto">
                     {projectId && environmentId && (
                         <Link
                             to={`/projects/${projectId}/environments/${environmentId}/evaluate`}
                         >
-                            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                                <Sparkles className="size-3.5" />
+                            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm font-medium">
+                                <Sparkles className="size-4 text-primary" />
                                 <span>Evaluate</span>
                             </Button>
                         </Link>
@@ -239,16 +228,16 @@ export function FeatureFlags() {
                     <Button
                         size="sm"
                         onClick={() => setShowCreateModal(true)}
-                        className="gap-1.5 text-xs font-semibold"
+                        className="gap-1.5 text-xs sm:text-sm font-semibold shadow-xs"
                     >
-                        <Plus className="size-3.5" />
+                        <Plus className="size-4" />
                         <span>Create Flag</span>
                     </Button>
                 </div>
             </div>
 
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive flex items-center justify-between">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
                     <span>{error}</span>
                     <button
                         type="button"
@@ -263,21 +252,21 @@ export function FeatureFlags() {
             {/* Filter and Search Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                     <Input
                         placeholder="Search flags by name or key..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 text-xs h-8.5 bg-card"
+                        className="pl-9.5 text-sm h-9.5 bg-card"
                     />
                 </div>
 
                 {/* Status Filter Buttons */}
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg border border-border/60 shrink-0">
+                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60 shrink-0">
                     <button
                         type="button"
                         onClick={() => setStatusFilter("ALL")}
-                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                             statusFilter === "ALL"
                                 ? "bg-card text-foreground shadow-2xs font-semibold"
                                 : "text-muted-foreground hover:text-foreground"
@@ -288,7 +277,7 @@ export function FeatureFlags() {
                     <button
                         type="button"
                         onClick={() => setStatusFilter("ENABLED")}
-                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                             statusFilter === "ENABLED"
                                 ? "bg-card text-foreground shadow-2xs font-semibold"
                                 : "text-muted-foreground hover:text-foreground"
@@ -299,7 +288,7 @@ export function FeatureFlags() {
                     <button
                         type="button"
                         onClick={() => setStatusFilter("DISABLED")}
-                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                             statusFilter === "DISABLED"
                                 ? "bg-card text-foreground shadow-2xs font-semibold"
                                 : "text-muted-foreground hover:text-foreground"
@@ -319,27 +308,27 @@ export function FeatureFlags() {
                 </div>
             ) : flags.length === 0 ? (
                 <Card className="border-dashed border-border/80 bg-muted/20">
-                    <CardContent className="py-12 text-center space-y-3">
-                        <Radio className="size-10 text-muted-foreground mx-auto opacity-40" />
+                    <CardContent className="py-14 text-center space-y-3">
+                        <Radio className="size-12 text-muted-foreground mx-auto opacity-40" />
                         <div>
-                            <h3 className="text-base font-semibold text-foreground">No Feature Flags Yet</h3>
-                            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                            <h3 className="text-lg font-semibold text-foreground">No Feature Flags Yet</h3>
+                            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
                                 Create your first feature flag to start dynamically controlling features and running percentage rollouts.
                             </p>
                         </div>
                         <Button
                             size="sm"
                             onClick={() => setShowCreateModal(true)}
-                            className="gap-1.5 text-xs mt-2"
+                            className="gap-2 text-xs sm:text-sm font-semibold mt-2"
                         >
-                            <Plus className="size-3.5" />
-                            Create First Flag
+                            <Plus className="size-4" />
+                            <span>Create First Flag</span>
                         </Button>
                     </CardContent>
                 </Card>
             ) : filteredFlags.length === 0 ? (
                 <Card className="bg-muted/10">
-                    <CardContent className="py-10 text-center text-muted-foreground text-xs">
+                    <CardContent className="py-10 text-center text-muted-foreground text-sm">
                         No flags match your search query or filter.
                     </CardContent>
                 </Card>
@@ -371,13 +360,13 @@ export function FeatureFlags() {
 
                 <form onSubmit={handleCreateFlag} className="space-y-4">
                     {createError && (
-                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive">
+                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
                             {createError}
                         </div>
                     )}
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="create-flag-name">Flag Name</Label>
+                        <Label htmlFor="create-flag-name" className="text-sm font-medium">Flag Name</Label>
                         <Input
                             id="create-flag-name"
                             placeholder="e.g. New Checkout Experience"
@@ -400,11 +389,12 @@ export function FeatureFlags() {
                             }}
                             required
                             autoFocus
+                            className="text-sm"
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="create-flag-key">Flag Key (used in code)</Label>
+                        <Label htmlFor="create-flag-key" className="text-sm font-medium">Flag Key (used in code)</Label>
                         <Input
                             id="create-flag-key"
                             placeholder="e.g. new_checkout_experience"
@@ -416,15 +406,15 @@ export function FeatureFlags() {
                                         .replace(/[^a-z0-9_]+/g, "_")
                                 )
                             }
-                            className="font-mono text-xs"
+                            className="font-mono text-xs sm:text-sm"
                             required
                         />
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="create-flag-rollout">Initial Rollout</Label>
-                            <span className="font-mono text-xs font-semibold">{flagRollout}%</span>
+                            <Label htmlFor="create-flag-rollout" className="text-sm font-medium">Initial Rollout</Label>
+                            <span className="font-mono text-sm font-bold text-foreground">{flagRollout}%</span>
                         </div>
                         <input
                             id="create-flag-rollout"
@@ -442,12 +432,14 @@ export function FeatureFlags() {
                             type="button"
                             variant="outline"
                             onClick={() => setShowCreateModal(false)}
+                            className="text-xs sm:text-sm"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={creating || !flagName.trim() || !flagKey.trim()}
+                            className="text-xs sm:text-sm font-semibold"
                         >
                             {creating ? "Creating..." : "Create Feature Flag"}
                         </Button>

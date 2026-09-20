@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { logout } from "@/lib/auth";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getProjects, type Project } from "@/lib/projects";
 import {
     getEnvironments,
@@ -221,6 +222,8 @@ export function Sidebar() {
 
                 {/* Right side */}
                 <div className="flex shrink-0 items-center gap-1">
+                    <ThemeToggle />
+
                     <NavLink
                         to="/settings"
                         className={({ isActive }) =>

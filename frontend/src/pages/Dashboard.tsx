@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     ArrowRight,
+    Check,
+    Copy,
     FolderKanban,
     Layers,
-    Plus,
     Radio,
     Sliders,
+    Sparkles,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,13 +39,13 @@ interface ExtendedFlag extends FeatureFlag {
 }
 
 export function Dashboard() {
-
     const [projects, setProjects] = useState<Project[]>([]);
     const [environments, setEnvironments] = useState<Environment[]>([]);
     const [flags, setFlags] = useState<ExtendedFlag[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
     async function loadDashboardData() {
         try {
@@ -114,35 +116,58 @@ export function Dashboard() {
         }
     }
 
+    function handleCopyKey(key: string, e: React.MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(key);
+        setCopiedKey(key);
+        setTimeout(() => setCopiedKey(null), 1500);
+    }
+
     const enabledCount = flags.filter((f) => f.enabled).length;
     const totalRules = flags.reduce((acc, f) => acc + f.rules.length, 0);
 
     return (
-        <div className="p-4 sm:p-6 md:p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-150">
+        <div className="p-4 sm:p-6 md:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-150">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                        Overview
+                        Dashboard Overview
                     </h1>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                        Live status and activity across all projects, environments, and feature flags.
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Real-time status across projects, deployment environments, and targeting rules.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Link to="/projects">
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                            <FolderKanban className="size-3.5" />
-                            <span>Projects</span>
-                        </Button>
-                    </Link>
-                </div>
+                {projects.length > 0 && environments.length > 0 && (
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <Link to={`/projects/${projects[0].id}/environments/${environments[0].id}/evaluate`}>
+                            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm font-medium">
+                                <Sparkles className="size-4 text-primary" />
+                                <span>Evaluation Playground</span>
+                            </Button>
+                        </Link>
+                        <Link to={`/projects/${projects[0].id}/environments/${environments[0].id}`}>
+                            <Button size="sm" className="gap-1.5 text-xs sm:text-sm font-semibold shadow-xs">
+                                <span>Manage Feature Flags</span>
+                                <ArrowRight className="size-4" />
+                            </Button>
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
-                    {error}
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
+                    <span>{error}</span>
+                    <button
+                        type="button"
+                        onClick={() => setError("")}
+                        className="text-xs underline cursor-pointer"
+                    >
+                        Dismiss
+                    </button>
                 </div>
             )}
 
@@ -154,13 +179,13 @@ export function Dashboard() {
                         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Projects
                         </CardTitle>
-                        <FolderKanban className="size-4 text-muted-foreground" />
+                        <FolderKanban className="size-4.5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold font-mono text-foreground">
-                            {loading ? <Skeleton className="h-8 w-12" /> : projects.length}
+                        <div className="text-3xl font-extrabold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-9 w-14" /> : projects.length}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
                             Active workspaces
                         </p>
                     </CardContent>
@@ -172,13 +197,13 @@ export function Dashboard() {
                         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Environments
                         </CardTitle>
-                        <Layers className="size-4 text-muted-foreground" />
+                        <Layers className="size-4.5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold font-mono text-foreground">
-                            {loading ? <Skeleton className="h-8 w-12" /> : environments.length}
+                        <div className="text-3xl font-extrabold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-9 w-14" /> : environments.length}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
                             Across all projects
                         </p>
                     </CardContent>
@@ -190,18 +215,16 @@ export function Dashboard() {
                         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Feature Flags
                         </CardTitle>
-                        <Radio className="size-4 text-muted-foreground" />
+                        <Radio className="size-4.5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold font-mono text-foreground">
-                            {loading ? <Skeleton className="h-8 w-12" /> : flags.length}
+                        <div className="text-3xl font-extrabold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-9 w-14" /> : flags.length}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground">
-                            <span className="font-semibold text-foreground">{enabledCount}</span>
-                            <span>enabled</span>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <span className="font-semibold text-green-600 dark:text-green-400">{enabledCount} enabled</span>
                             <span>•</span>
-                            <span className="font-semibold text-foreground">{flags.length - enabledCount}</span>
-                            <span>disabled</span>
+                            <span className="font-semibold text-muted-foreground">{flags.length - enabledCount} disabled</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -212,130 +235,140 @@ export function Dashboard() {
                         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Targeting Rules
                         </CardTitle>
-                        <Sliders className="size-4 text-muted-foreground" />
+                        <Sliders className="size-4.5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold font-mono text-foreground">
-                            {loading ? <Skeleton className="h-8 w-12" /> : totalRules}
+                        <div className="text-3xl font-extrabold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-9 w-14" /> : totalRules}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-1">
-                            Active targeting constraints
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
+                            Active attribute constraints
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Recent Feature Flags Inventory */}
+            {/* Feature Flags Inventory Section */}
             <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                        <h2 className="text-lg font-bold tracking-tight text-foreground">
+                        <h2 className="text-xl font-bold tracking-tight text-foreground">
                             Active Feature Flags
                         </h2>
-                        <p className="text-xs text-muted-foreground">
-                            Global view of feature flags across your environments.
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            Global inventory across all configured projects and deployment environments.
                         </p>
                     </div>
 
                     {projects.length > 0 && environments.length > 0 && (
                         <Link
                             to={`/projects/${projects[0].id}/environments/${environments[0].id}`}
-                            className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                            className="text-xs sm:text-sm font-semibold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto"
                         >
-                            <span>Open Inventory</span>
-                            <ArrowRight className="size-3" />
+                            <span>Open Environment Workspace</span>
+                            <ArrowRight className="size-3.5" />
                         </Link>
                     )}
                 </div>
 
                 {loading ? (
                     <div className="space-y-3">
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
                     </div>
                 ) : flags.length === 0 ? (
                     <Card className="border-dashed border-border/80 bg-muted/20">
-                        <CardContent className="py-12 text-center space-y-3">
-                            <Radio className="size-10 text-muted-foreground mx-auto opacity-40" />
+                        <CardContent className="py-14 text-center space-y-3">
+                            <Radio className="size-12 text-muted-foreground mx-auto opacity-40" />
                             <div>
-                                <h3 className="text-base font-semibold text-foreground">No Feature Flags Yet</h3>
-                                <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                                    Create a project and environment to start managing your feature flags.
+                                <h3 className="text-lg font-semibold text-foreground">No Feature Flags Found</h3>
+                                <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+                                    Use the top Project Selector to create a project and environment to start managing feature flags.
                                 </p>
                             </div>
-                            <Link to="/projects">
-                                <Button size="sm" className="gap-1.5 text-xs mt-2">
-                                    <Plus className="size-3.5" />
-                                    Go to Projects
-                                </Button>
-                            </Link>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="rounded-xl border border-border/80 bg-card overflow-hidden divide-y divide-border/60">
+                    <div className="rounded-xl border border-border/80 bg-card overflow-hidden divide-y divide-border/60 shadow-2xs">
                         {flags.map((flag) => {
                             const flagUrl = `/projects/${flag.projectId}/environments/${flag.environmentId}/flags/${flag.id}`;
 
                             return (
                                 <div
                                     key={flag.id}
-                                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
+                                    className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors"
                                 >
-                                    <div className="space-y-1 min-w-0">
+                                    <div className="space-y-1.5 min-w-0">
                                         <div className="flex items-center gap-2.5 flex-wrap">
                                             <Link
                                                 to={flagUrl}
-                                                className="font-semibold text-sm text-foreground hover:text-primary transition-colors truncate"
+                                                className="font-semibold text-sm sm:text-base text-foreground hover:text-primary transition-colors truncate"
                                             >
                                                 {flag.name}
                                             </Link>
                                             <Badge
                                                 variant={flag.enabled ? "default" : "secondary"}
-                                                className="text-[10px] h-4 px-1.5"
+                                                className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5"
                                             >
                                                 {flag.enabled ? "Enabled" : "Disabled"}
                                             </Badge>
                                         </div>
 
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                                            <code className="font-mono text-[11px] bg-muted/60 px-1.5 py-0.5 rounded text-foreground">
-                                                {flag.key}
-                                            </code>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => handleCopyKey(flag.key, e)}
+                                                className="inline-flex items-center gap-1 font-mono text-[11px] bg-muted/80 hover:bg-muted px-2 py-0.5 rounded text-foreground transition-colors cursor-pointer"
+                                                title="Click to copy key"
+                                            >
+                                                <span>{flag.key}</span>
+                                                {copiedKey === flag.key ? (
+                                                    <Check className="size-2.5 text-green-600" />
+                                                ) : (
+                                                    <Copy className="size-2.5 text-muted-foreground" />
+                                                )}
+                                            </button>
                                             <span>•</span>
-                                            <span>
-                                                {flag.projectName} / {flag.environmentName}
+                                            <span className="font-medium text-foreground/80">
+                                                {flag.projectName}
+                                            </span>
+                                            <span>/</span>
+                                            <span className="font-medium text-foreground">
+                                                {flag.environmentName}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
-                                        <div className="flex items-center gap-2 text-xs">
+                                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                                        <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-muted/40 px-2.5 py-1 rounded-md border border-border/40">
                                             <span className="text-muted-foreground">Rollout:</span>
-                                            <span className="font-mono font-semibold text-foreground">
+                                            <span className="font-mono font-bold text-foreground">
                                                 {flag.rolloutPercentage}%
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 text-xs">
+                                        <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-muted/40 px-2.5 py-1 rounded-md border border-border/40">
                                             <span className="text-muted-foreground">Targeting:</span>
                                             <span className="font-medium text-foreground">
                                                 {flag.rules.length} {flag.rules.length === 1 ? "rule" : "rules"}
                                             </span>
                                         </div>
 
-                                        <Switch
-                                            checked={flag.enabled}
-                                            onCheckedChange={() => handleToggleFlag(flag)}
-                                            aria-label={`Toggle ${flag.name}`}
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                checked={flag.enabled}
+                                                onCheckedChange={() => handleToggleFlag(flag)}
+                                                aria-label={`Toggle ${flag.name}`}
+                                            />
+                                        </div>
 
                                         <Link
                                             to={flagUrl}
-                                            className="inline-flex size-7 items-center justify-center rounded-md border border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                            className="inline-flex size-8 items-center justify-center rounded-lg border border-border/70 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                                             title="Open flag workspace"
                                         >
-                                            <ArrowRight className="size-3.5" />
+                                            <ArrowRight className="size-4" />
                                         </Link>
                                     </div>
                                 </div>

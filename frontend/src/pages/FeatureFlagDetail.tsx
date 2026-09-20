@@ -61,18 +61,18 @@ import {
 
 const REASON_LABELS: Record<string, { label: string; desc: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     FULL_ROLLOUT: {
-        label: "100% Rollout",
-        desc: "Flag is fully enabled for all users without restrictions.",
+        label: "100% Full Rollout",
+        desc: "Flag is active and rollout is set to 100%. All users receive this feature.",
         variant: "default",
     },
     PERCENTAGE_ROLLOUT: {
         label: "Percentage Rollout Match",
-        desc: "User ID was deterministically bucketed within the rollout percentage.",
+        desc: "User ID was deterministically bucketed within the rollout percentage threshold.",
         variant: "default",
     },
     PERCENTAGE_ROLLOUT_EXCLUDED: {
         label: "Percentage Excluded",
-        desc: "User ID bucket fell outside the configured rollout threshold.",
+        desc: "User ID bucket fell outside the configured percentage rollout range.",
         variant: "secondary",
     },
     TARGETING_RULE_NOT_MATCHED: {
@@ -82,7 +82,7 @@ const REASON_LABELS: Record<string, { label: string; desc: string; variant: "def
     },
     FLAG_DISABLED: {
         label: "Flag Disabled",
-        desc: "The flag master kill switch is set to Disabled.",
+        desc: "The flag master kill-switch is set to Disabled in this environment.",
         variant: "destructive",
     },
     FLAG_NOT_FOUND: {
@@ -344,7 +344,7 @@ export function FeatureFlagDetail() {
     if (loading) {
         return (
             <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
-                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-7 w-48" />
                 <Skeleton className="h-28 w-full" />
                 <Skeleton className="h-64 w-full" />
             </div>
@@ -354,19 +354,21 @@ export function FeatureFlagDetail() {
     if (error && !flag) {
         return (
             <div className="p-6 md:p-8 max-w-5xl mx-auto">
-                <Card className="border-destructive/40 bg-destructive/5 p-6 text-center">
-                    <AlertCircle className="size-8 text-destructive mx-auto mb-2" />
-                    <h3 className="text-lg font-semibold text-destructive">Feature Flag Not Found</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{error}</p>
+                <Card className="border-destructive/40 bg-destructive/5 p-8 text-center space-y-4">
+                    <AlertCircle className="size-10 text-destructive mx-auto" />
+                    <div>
+                        <h3 className="text-lg font-bold text-destructive">Feature Flag Not Found</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{error}</p>
+                    </div>
                     <Link
                         to={
                             projectId && environmentId
                                 ? `/projects/${projectId}/environments/${environmentId}`
-                                : "/projects"
+                                : "/dashboard"
                         }
                     >
-                        <Button variant="outline" className="mt-4">
-                            <ArrowLeft className="size-4 mr-2" />
+                        <Button variant="outline" className="gap-2">
+                            <ArrowLeft className="size-4" />
                             Back to Feature Flags
                         </Button>
                     </Link>
@@ -381,34 +383,32 @@ export function FeatureFlagDetail() {
 
     return (
         <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-5xl mx-auto animate-in fade-in duration-150">
-            {/* Top Breadcrumb */}
+            {/* Top Breadcrumb & Actions */}
             <div className="flex items-center justify-between">
                 <Link
                     to={`/projects/${projectId}/environments/${environmentId}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
                 >
-                    <ArrowLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                    <ArrowLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" />
                     <span>Back to Feature Flags</span>
                     {environment && (
-                        <span className="text-muted-foreground/60">({environment.name})</span>
+                        <span className="text-muted-foreground/70 font-mono">({environment.name})</span>
                     )}
                 </Link>
 
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="destructive"
-                        size="xs"
-                        onClick={() => setDeleteModalOpen(true)}
-                        className="text-xs h-7 gap-1"
-                    >
-                        <Trash2 className="size-3.5" />
-                        <span>Delete Flag</span>
-                    </Button>
-                </div>
+                <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteModalOpen(true)}
+                    className="gap-1.5 text-xs font-semibold h-8"
+                >
+                    <Trash2 className="size-3.5" />
+                    <span>Delete Flag</span>
+                </Button>
             </div>
 
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive flex items-center justify-between">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
                     <span>{error}</span>
                     <button
                         type="button"
@@ -420,29 +420,29 @@ export function FeatureFlagDetail() {
                 </div>
             )}
 
-            {/* Main Header Banner */}
+            {/* Main Flag Header Banner */}
             <Card className="border-border/80 shadow-xs">
                 <CardContent className="p-5 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1.5 min-w-0">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate text-foreground">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight truncate text-foreground">
                                     {flag.name}
                                 </h1>
                                 <Badge
                                     variant={flag.enabled ? "default" : "secondary"}
-                                    className="text-xs font-semibold px-2 py-0.5"
+                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5"
                                 >
                                     {flag.enabled ? "ENABLED" : "DISABLED"}
                                 </Badge>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                                <span className="font-medium">Key:</span>
+                            <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+                                <span className="font-medium">Flag Key:</span>
                                 <button
                                     type="button"
                                     onClick={handleCopyKey}
-                                    className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 font-mono text-xs text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-1 rounded bg-muted/80 hover:bg-muted px-2 py-0.5 font-mono text-xs font-medium text-foreground transition-colors cursor-pointer"
                                     title="Click to copy key"
                                 >
                                     <span>{flag.key}</span>
@@ -456,7 +456,7 @@ export function FeatureFlagDetail() {
                                 {project && environment && (
                                     <>
                                         <span>•</span>
-                                        <span>
+                                        <span className="font-medium text-foreground/80">
                                             {project.name} / {environment.name}
                                         </span>
                                     </>
@@ -464,12 +464,12 @@ export function FeatureFlagDetail() {
                             </div>
                         </div>
 
-                        {/* Master Switch */}
-                        <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-lg border border-border/60 shrink-0 self-start sm:self-auto">
+                        {/* Master Toggle Switch */}
+                        <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/60 shrink-0 self-start sm:self-auto">
                             <div className="text-right">
-                                <p className="text-xs font-semibold text-foreground">Flag Status</p>
+                                <p className="text-xs font-bold text-foreground">Master Status</p>
                                 <p className="text-[11px] text-muted-foreground">
-                                    {flag.enabled ? "Serving evaluated values" : "Kill switch active"}
+                                    {flag.enabled ? "Serving live values" : "Kill-switch active"}
                                 </p>
                             </div>
                             <Switch
@@ -486,39 +486,39 @@ export function FeatureFlagDetail() {
             {/* Tabs: Configuration vs Evaluation */}
             <Tabs defaultValue="configuration" className="w-full">
                 <TabsList className="grid w-full sm:w-80 grid-cols-2">
-                    <TabsTrigger value="configuration" className="gap-2">
+                    <TabsTrigger value="configuration" className="gap-2 text-sm font-medium">
                         <Sliders className="size-4" />
                         <span>Configuration</span>
                     </TabsTrigger>
-                    <TabsTrigger value="evaluation" className="gap-2">
+                    <TabsTrigger value="evaluation" className="gap-2 text-sm font-medium">
                         <Sparkles className="size-4" />
                         <span>Evaluation</span>
                     </TabsTrigger>
                 </TabsList>
 
                 {/* Configuration Tab */}
-                <TabsContent value="configuration" className="space-y-6">
+                <TabsContent value="configuration" className="space-y-6 pt-2">
                     {/* Rollout Percentage Section */}
-                    <Card>
+                    <Card className="shadow-xs">
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle className="text-base font-semibold">
+                                    <CardTitle className="text-base font-bold">
                                         Percentage Rollout
                                     </CardTitle>
-                                    <CardDescription className="text-xs">
-                                        Gradually release this flag to a deterministic percentage of your user base.
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        Gradually release this flag to a deterministic percentage of your user base using Murmur3 user ID hashing.
                                     </CardDescription>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-bold font-mono text-foreground">
+                                    <span className="text-3xl font-extrabold font-mono text-foreground">
                                         {draftRollout}%
                                     </span>
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-3">
+                            <div className="space-y-3 pt-2">
                                 <Slider
                                     value={draftRollout}
                                     onChange={(v) => setDraftRollout(v)}
@@ -526,8 +526,8 @@ export function FeatureFlagDetail() {
                                     max={100}
                                     step={1}
                                 />
-                                <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
-                                    <span>0% (Off)</span>
+                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                    <span>0% (Disabled)</span>
                                     <span>25%</span>
                                     <span>50%</span>
                                     <span>75%</span>
@@ -535,11 +535,11 @@ export function FeatureFlagDetail() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-3 border-t border-border">
-                                <p className="text-xs text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                     {rolloutChanged ? (
-                                        <span className="text-amber-600 font-medium">
-                                            Unsaved rollout changes (current live: {flag.rolloutPercentage}%)
+                                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                            Unsaved draft change (Live in engine: {flag.rolloutPercentage}%)
                                         </span>
                                     ) : (
                                         <span>Live in runtime engine: {flag.rolloutPercentage}%</span>
@@ -548,8 +548,8 @@ export function FeatureFlagDetail() {
 
                                 <div className="flex items-center gap-2">
                                     {rolloutSavedSuccess && (
-                                        <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                                            <Check className="size-3.5" />
+                                        <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                                            <Check className="size-4" />
                                             Saved!
                                         </span>
                                     )}
@@ -557,10 +557,10 @@ export function FeatureFlagDetail() {
                                         size="sm"
                                         onClick={handleSaveRollout}
                                         disabled={savingRollout || !rolloutChanged}
-                                        className="gap-1.5 text-xs font-semibold"
+                                        className="gap-1.5 text-xs sm:text-sm font-semibold h-8.5"
                                     >
-                                        <Save className="size-3.5" />
-                                        {savingRollout ? "Saving..." : "Save Rollout"}
+                                        <Save className="size-4" />
+                                        <span>{savingRollout ? "Saving..." : "Save Rollout"}</span>
                                     </Button>
                                 </div>
                             </div>
@@ -568,71 +568,71 @@ export function FeatureFlagDetail() {
                     </Card>
 
                     {/* Targeting Rules Section */}
-                    <Card>
+                    <Card className="shadow-xs">
                         <CardHeader className="pb-3">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div>
-                                    <CardTitle className="text-base font-semibold">
+                                    <CardTitle className="text-base font-bold">
                                         Targeting Rules
                                     </CardTitle>
-                                    <CardDescription className="text-xs">
+                                    <CardDescription className="text-xs sm:text-sm">
                                         Target specific user cohorts based on custom attributes before rollout percentage is evaluated.
                                     </CardDescription>
                                 </div>
                                 <Button
                                     size="sm"
                                     onClick={handleOpenAddRule}
-                                    className="gap-1.5 text-xs self-start sm:self-auto"
+                                    className="gap-1.5 text-xs sm:text-sm font-semibold self-start sm:self-auto h-8.5"
                                 >
-                                    <Plus className="size-3.5" />
-                                    Add Rule
+                                    <Plus className="size-4" />
+                                    <span>Add Rule</span>
                                 </Button>
                             </div>
                         </CardHeader>
 
                         <CardContent>
                             {rules.length === 0 ? (
-                                <div className="rounded-lg border border-dashed border-border/80 p-8 text-center bg-muted/20">
-                                    <Radio className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                                    <h4 className="text-sm font-semibold text-foreground">No Targeting Rules Configured</h4>
-                                    <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-                                        All users will directly receive the percentage rollout evaluation. Add targeting rules to restrict this flag to specific countries, plans, or beta testers.
+                                <div className="rounded-xl border border-dashed border-border/80 p-8 text-center bg-muted/20 space-y-2">
+                                    <Radio className="size-8 text-muted-foreground mx-auto opacity-50" />
+                                    <h4 className="text-sm font-bold text-foreground">No Targeting Rules Configured</h4>
+                                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                                        All users will directly receive percentage rollout evaluation. Add targeting rules to restrict this flag to specific countries, user plans, or beta groups.
                                     </p>
                                     <Button
-                                        size="xs"
+                                        size="sm"
                                         variant="outline"
                                         onClick={handleOpenAddRule}
-                                        className="mt-4 gap-1"
+                                        className="mt-2 gap-1.5 text-xs"
                                     >
-                                        <Plus className="size-3" />
-                                        Add First Rule
+                                        <Plus className="size-3.5" />
+                                        <span>Add First Rule</span>
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-border border rounded-lg overflow-hidden bg-card">
+                                <div className="divide-y divide-border border rounded-xl overflow-hidden bg-card shadow-2xs">
                                     {rules.map((rule, idx) => (
                                         <div
                                             key={rule.id}
-                                            className="flex items-center justify-between p-3.5 gap-4 hover:bg-muted/30 transition-colors"
+                                            className="flex items-center justify-between p-3.5 sm:p-4 gap-4 hover:bg-muted/30 transition-colors"
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
+                                                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
                                                     {idx + 1}
                                                 </span>
 
-                                                <div className="flex items-center gap-2 flex-wrap text-xs">
-                                                    <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded font-mono">
+                                                <div className="flex items-center gap-2 flex-wrap text-sm">
+                                                    <span className="font-mono font-semibold text-foreground bg-muted px-2.5 py-0.5 rounded">
                                                         {rule.attribute}
                                                     </span>
 
                                                     <Badge
                                                         variant={rule.operator === "EQUALS" ? "default" : "secondary"}
-                                                        className="text-[10px] font-mono"
+                                                        className="text-[10px] font-mono uppercase"
                                                     >
                                                         {rule.operator}
                                                     </Badge>
 
-                                                    <span className="font-medium text-foreground bg-muted/60 px-2 py-0.5 rounded font-mono">
+                                                    <span className="font-mono font-medium text-foreground bg-muted/60 px-2.5 py-0.5 rounded">
                                                         "{rule.value}"
                                                     </span>
                                                 </div>
@@ -645,7 +645,7 @@ export function FeatureFlagDetail() {
                                                     onClick={() => handleOpenEditRule(rule)}
                                                     title="Edit rule"
                                                 >
-                                                    <Edit2 className="size-3.5 text-muted-foreground" />
+                                                    <Edit2 className="size-4 text-muted-foreground" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
@@ -654,7 +654,7 @@ export function FeatureFlagDetail() {
                                                     className="hover:text-destructive"
                                                     title="Delete rule"
                                                 >
-                                                    <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
+                                                    <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -666,23 +666,23 @@ export function FeatureFlagDetail() {
                 </TabsContent>
 
                 {/* Evaluation Tab */}
-                <TabsContent value="evaluation" className="space-y-6">
+                <TabsContent value="evaluation" className="space-y-6 pt-2">
                     <div className="grid gap-6 md:grid-cols-12">
                         {/* Evaluation Form */}
-                        <Card className="md:col-span-7">
+                        <Card className="md:col-span-7 shadow-xs">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
+                                <CardTitle className="text-base font-bold">
                                     Flag Evaluation Simulator
                                 </CardTitle>
-                                <CardDescription className="text-xs">
-                                    Test deterministic bucketing and targeting rules for <code className="font-mono">{flag.key}</code>.
+                                <CardDescription className="text-xs sm:text-sm">
+                                    Test deterministic bucketing and targeting rules for <code className="font-mono font-semibold text-foreground">{flag.key}</code>.
                                 </CardDescription>
                             </CardHeader>
 
                             <CardContent>
                                 <form onSubmit={handleRunEvaluation} className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="eval-user-id" className="text-xs font-medium">
+                                        <Label htmlFor="eval-user-id" className="text-sm font-medium">
                                             User ID (Required for Rollout Bucketing)
                                         </Label>
                                         <Input
@@ -690,17 +690,17 @@ export function FeatureFlagDetail() {
                                             value={evalUserId}
                                             onChange={(e) => setEvalUserId(e.target.value)}
                                             placeholder="e.g. user_84920, guest-session-12"
-                                            className="font-mono text-xs"
+                                            className="font-mono text-sm"
                                             required
                                         />
-                                        <p className="text-[11px] text-muted-foreground">
-                                            Rollout percentage deterministically hashes this User ID.
+                                        <p className="text-xs text-muted-foreground">
+                                            The evaluation engine computes a deterministic hash against this User ID.
                                         </p>
                                     </div>
 
                                     <div className="space-y-2 pt-2 border-t border-border">
                                         <div className="flex items-center justify-between">
-                                            <Label className="text-xs font-medium">
+                                            <Label className="text-sm font-medium">
                                                 Evaluation Attributes (Context)
                                             </Label>
                                             <Button
@@ -708,9 +708,9 @@ export function FeatureFlagDetail() {
                                                 variant="outline"
                                                 size="xs"
                                                 onClick={addAttributeRow}
-                                                className="h-6 text-[11px] px-2"
+                                                className="h-7 text-xs px-2.5 gap-1"
                                             >
-                                                <Plus className="size-3 mr-1" />
+                                                <Plus className="size-3.5" />
                                                 Add Attribute
                                             </Button>
                                         </div>
@@ -724,7 +724,7 @@ export function FeatureFlagDetail() {
                                                         onChange={(e) =>
                                                             updateAttributeRow(index, e.target.value, attr.value)
                                                         }
-                                                        className="font-mono text-xs flex-1"
+                                                        className="font-mono text-xs sm:text-sm flex-1"
                                                     />
                                                     <Input
                                                         placeholder="Value (e.g. US)"
@@ -732,7 +732,7 @@ export function FeatureFlagDetail() {
                                                         onChange={(e) =>
                                                             updateAttributeRow(index, attr.key, e.target.value)
                                                         }
-                                                        className="font-mono text-xs flex-1"
+                                                        className="font-mono text-xs sm:text-sm flex-1"
                                                     />
                                                     <Button
                                                         type="button"
@@ -741,7 +741,7 @@ export function FeatureFlagDetail() {
                                                         onClick={() => removeAttributeRow(index)}
                                                         className="text-muted-foreground hover:text-destructive"
                                                     >
-                                                        <Trash2 className="size-3.5" />
+                                                        <Trash2 className="size-4" />
                                                     </Button>
                                                 </div>
                                             ))}
@@ -749,7 +749,7 @@ export function FeatureFlagDetail() {
                                     </div>
 
                                     {evalError && (
-                                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive">
+                                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
                                             {evalError}
                                         </div>
                                     )}
@@ -757,29 +757,29 @@ export function FeatureFlagDetail() {
                                     <Button
                                         type="submit"
                                         disabled={evaluating || !evalUserId.trim()}
-                                        className="w-full gap-2 text-xs font-semibold"
+                                        className="w-full gap-2 text-sm font-semibold h-10"
                                     >
-                                        <Play className="size-3.5" />
-                                        {evaluating ? "Evaluating..." : "Run Evaluation"}
+                                        <Play className="size-4" />
+                                        <span>{evaluating ? "Evaluating..." : "Run Evaluation"}</span>
                                     </Button>
                                 </form>
                             </CardContent>
                         </Card>
 
                         {/* Evaluation Result Output */}
-                        <Card className="md:col-span-5 flex flex-col justify-between">
+                        <Card className="md:col-span-5 flex flex-col justify-between shadow-xs">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Evaluation Output</CardTitle>
-                                <CardDescription className="text-xs">
-                                    Result returned by FlagForge evaluation engine.
+                                <CardTitle className="text-base font-bold">Evaluation Output</CardTitle>
+                                <CardDescription className="text-xs sm:text-sm">
+                                    Live verdict returned by FlagForge backend engine.
                                 </CardDescription>
                             </CardHeader>
 
                             <CardContent className="flex-1 flex flex-col justify-center">
                                 {!evalResult ? (
                                     <div className="py-12 text-center text-muted-foreground space-y-2">
-                                        <Gauge className="size-8 mx-auto opacity-40" />
-                                        <p className="text-xs">Click "Run Evaluation" to test this flag.</p>
+                                        <Gauge className="size-10 mx-auto opacity-40" />
+                                        <p className="text-xs sm:text-sm">Click "Run Evaluation" to test this flag.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4 animate-in zoom-in-95 duration-150">
@@ -791,12 +791,12 @@ export function FeatureFlagDetail() {
                                             }`}
                                         >
                                             {evalResult.enabled ? (
-                                                <CheckCircle2 className="size-8 text-green-600 shrink-0" />
+                                                <CheckCircle2 className="size-9 text-green-600 shrink-0" />
                                             ) : (
-                                                <XCircle className="size-8 text-muted-foreground shrink-0" />
+                                                <XCircle className="size-9 text-muted-foreground shrink-0" />
                                             )}
                                             <div>
-                                                <p className="text-lg font-bold tracking-tight">
+                                                <p className="text-xl font-extrabold tracking-tight">
                                                     {evalResult.enabled ? "ENABLED" : "DISABLED"}
                                                 </p>
                                                 <p className="text-xs font-medium opacity-90">
@@ -805,28 +805,28 @@ export function FeatureFlagDetail() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2 text-xs">
-                                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/60">
+                                        <div className="space-y-2.5 text-xs sm:text-sm">
+                                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/60">
                                                 <span className="text-muted-foreground font-medium">Evaluation Reason:</span>
                                                 <Badge
                                                     variant={REASON_LABELS[evalResult.reason]?.variant || "secondary"}
-                                                    className="font-mono text-[11px]"
+                                                    className="font-mono text-xs font-semibold"
                                                 >
                                                     {REASON_LABELS[evalResult.reason]?.label || evalResult.reason}
                                                 </Badge>
                                             </div>
 
-                                            <div className="p-2.5 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground text-[11px]">
+                                            <div className="p-3 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground text-xs leading-relaxed">
                                                 {REASON_LABELS[evalResult.reason]?.desc || "Evaluated by engine."}
                                             </div>
 
                                             {evalLatency !== null && (
-                                                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30 text-muted-foreground text-[11px]">
-                                                    <span className="flex items-center gap-1">
-                                                        <Clock className="size-3" />
+                                                <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 text-muted-foreground text-xs">
+                                                    <span className="flex items-center gap-1.5">
+                                                        <Clock className="size-3.5" />
                                                         Roundtrip Latency:
                                                     </span>
-                                                    <span className="font-mono font-semibold text-foreground">
+                                                    <span className="font-mono font-bold text-foreground">
                                                         {evalLatency} ms
                                                     </span>
                                                 </div>
@@ -852,13 +852,13 @@ export function FeatureFlagDetail() {
 
                 <form onSubmit={handleSaveRule} className="space-y-4">
                     {ruleError && (
-                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive">
+                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
                             {ruleError}
                         </div>
                     )}
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="rule-attr">User Attribute</Label>
+                        <Label htmlFor="rule-attr" className="text-sm font-medium">User Attribute</Label>
                         <Input
                             id="rule-attr"
                             placeholder="e.g. country, plan, tier, role"
@@ -866,16 +866,17 @@ export function FeatureFlagDetail() {
                             onChange={(e) => setRuleAttribute(e.target.value)}
                             required
                             autoFocus
+                            className="text-sm"
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="rule-op">Operator</Label>
+                        <Label htmlFor="rule-op" className="text-sm font-medium">Operator</Label>
                         <select
                             id="rule-op"
                             value={ruleOperator}
                             onChange={(e) => setRuleOperator(e.target.value as RuleOperator)}
-                            className="w-full h-9 rounded-md border border-input bg-card px-3 py-1 text-sm font-mono shadow-xs focus:outline-hidden focus:ring-2 focus:ring-ring cursor-pointer"
+                            className="w-full h-10 rounded-lg border border-input bg-card px-3 text-sm font-mono shadow-xs focus:outline-hidden focus:ring-2 focus:ring-ring cursor-pointer"
                         >
                             <option value="EQUALS">EQUALS</option>
                             <option value="NOT_EQUALS">NOT_EQUALS</option>
@@ -883,13 +884,14 @@ export function FeatureFlagDetail() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="rule-val">Target Value</Label>
+                        <Label htmlFor="rule-val" className="text-sm font-medium">Target Value</Label>
                         <Input
                             id="rule-val"
                             placeholder="e.g. US, enterprise, beta"
                             value={ruleValue}
                             onChange={(e) => setRuleValue(e.target.value)}
                             required
+                            className="text-sm"
                         />
                     </div>
 
@@ -898,12 +900,14 @@ export function FeatureFlagDetail() {
                             type="button"
                             variant="outline"
                             onClick={() => setRuleModalOpen(false)}
+                            className="text-xs sm:text-sm"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={savingRule || !ruleAttribute.trim() || !ruleValue.trim()}
+                            className="text-xs sm:text-sm font-semibold"
                         >
                             {savingRule ? "Saving..." : editingRule ? "Update Rule" : "Add Rule"}
                         </Button>
@@ -927,6 +931,7 @@ export function FeatureFlagDetail() {
                         type="button"
                         variant="outline"
                         onClick={() => setDeleteModalOpen(false)}
+                        className="text-xs sm:text-sm"
                     >
                         Cancel
                     </Button>
@@ -935,6 +940,7 @@ export function FeatureFlagDetail() {
                         variant="destructive"
                         onClick={handleDeleteFlagSubmit}
                         disabled={deletingFlag}
+                        className="text-xs sm:text-sm font-semibold"
                     >
                         {deletingFlag ? "Deleting..." : "Permanently Delete Flag"}
                     </Button>
