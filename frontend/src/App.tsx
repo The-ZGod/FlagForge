@@ -14,6 +14,7 @@ import { Activity } from "@/pages/Activity";
 import { FeatureFlagDetail } from "@/pages/FeatureFlagDetail";
 import { ApiKeys } from "@/pages/ApiKeys";
 import { Docs } from "@/pages/Docs";
+import MorphingDemo from "@/pages/morphing-demo";
 
 function App() {
     return (
@@ -26,6 +27,15 @@ function App() {
                 <Route path="/login" element={<Login />} />
 
                 {/* Docs page rendered with AppLayout so users can view docs */}
+                {/* <Route
+                    path="/docs"
+                    element={
+                        <div className="min-h-screen bg-background text-foreground flex flex-col">
+                            <Docs />
+                        </div>
+                    }
+                />\n                <Route path=\"/morphing-demo\" element={\<MorphingDemo /\>} /> */}
+
                 <Route
                     path="/docs"
                     element={
@@ -34,6 +44,7 @@ function App() {
                         </div>
                     }
                 />
+                <Route path="/morphing-demo" element={<MorphingDemo />} />
 
                 {/* Protected Application Workspace */}
                 <Route element={<ProtectedRoute />}>
