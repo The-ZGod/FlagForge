@@ -395,81 +395,227 @@ export function Environments() {
             {/* Create Environment Modal */}
             <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
                 <DialogClose onClose={() => setCreateModalOpen(false)} />
-                <DialogHeader>
-                    <DialogTitle>Create Environment</DialogTitle>
-                    <DialogDescription>
-                        Create an isolated deployment environment in {project?.name}.
-                    </DialogDescription>
+
+                <DialogHeader className="space-y-4 border-b border-border/60 pb-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 shadow-[inset_0_1px_rgba(255,255,255,0.06)]">
+                            <Layers className="size-5 text-foreground" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <div className="mb-1 flex items-center gap-2">
+                                <span className="rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                                    Runtime
+                                </span>
+                                <span className="size-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]" />
+                                <span className="text-[10px] font-medium text-muted-foreground">
+                                    Isolated environment
+                                </span>
+                            </div>
+
+                            <DialogTitle className="text-xl font-semibold tracking-tight">
+                                Create Environment
+                            </DialogTitle>
+
+                            <DialogDescription className="mt-1 text-sm leading-5 text-muted-foreground">
+                                Create a dedicated runtime for{" "}
+                                <span className="font-medium text-foreground">
+                                    {project?.name}
+                                </span>
+                                .
+                            </DialogDescription>
+                        </div>
+                    </div>
+
+                    {/* Presets */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                                Quick start
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/70">
+                                Choose a preset
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                            {[
+                                { name: "Development", key: "development", hint: "Local testing" },
+                                { name: "Staging", key: "staging", hint: "Pre-release" },
+                                { name: "Production", key: "production", hint: "Live users" },
+                            ].map((preset) => {
+                                const selected = envKey === preset.key;
+
+                                return (
+                                    <button
+                                        key={preset.key}
+                                        type="button"
+                                        onClick={() => {
+                                            setEnvName(preset.name);
+                                            setEnvKey(preset.key);
+                                        }}
+                                        className={[
+                                            "group relative overflow-hidden rounded-xl border px-3 py-2.5 text-left",
+                                            "transition-all duration-200",
+                                            selected
+                                                ? "border-foreground/30 bg-foreground/[0.06] shadow-[inset_0_1px_rgba(255,255,255,0.06)]"
+                                                : "border-border/60 bg-muted/20 hover:border-border hover:bg-muted/40",
+                                        ].join(" ")}
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs font-semibold text-foreground">
+                                                {preset.name}
+                                            </span>
+
+                                            {selected ? (
+                                                <span className="flex size-4 items-center justify-center rounded-full bg-foreground text-background">
+                                                    <Check className="size-2.5" />
+                                                </span>
+                                            ) : (
+                                                <span className="size-1.5 rounded-full bg-muted-foreground/30 transition-colors group-hover:bg-muted-foreground/60" />
+                                            )}
+                                        </div>
+
+                                        <span className="mt-1 block text-[10px] text-muted-foreground">
+                                            {preset.hint}
+                                        </span>
+
+                                        <code className="mt-1 block font-mono text-[9px] text-muted-foreground/70">
+                                            {preset.key}
+                                        </code>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </DialogHeader>
 
-                <form onSubmit={handleCreateEnvironment} className="space-y-4">
+                <form onSubmit={handleCreateEnvironment} className="space-y-5 pt-5">
                     {createError && (
-                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
-                            {createError}
+                        <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-xs text-destructive">
+                            <span className="mt-1 size-1.5 shrink-0 rounded-full bg-destructive" />
+                            <span>{createError}</span>
                         </div>
                     )}
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="env-name-input" className="text-sm font-medium">Environment Name</Label>
-                        <Input
-                            id="env-name-input"
-                            placeholder="e.g. Staging, Production, Beta"
-                            value={envName}
-                            onChange={(e) => {
-                                setEnvName(e.target.value);
-                                if (
-                                    !envKey ||
-                                    envKey ===
+                    {/* Inputs */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor="env-name-input"
+                                className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground"
+                            >
+                                Environment Name
+                            </Label>
+
+                            <Input
+                                id="env-name-input"
+                                placeholder="e.g. Production"
+                                value={envName}
+                                onChange={(e) => {
+                                    setEnvName(e.target.value);
+
+                                    if (
+                                        !envKey ||
+                                        envKey ===
                                         envName
                                             .toLowerCase()
                                             .replace(/[^a-z0-9]+/g, "-")
-                                ) {
+                                    ) {
+                                        setEnvKey(
+                                            e.target.value
+                                                .toLowerCase()
+                                                .replace(/[^a-z0-9-]+/g, "-")
+                                        );
+                                    }
+                                }}
+                                required
+                                autoFocus
+                                className="h-11 rounded-xl border-border/70 bg-muted/20 px-3.5 text-sm transition-all duration-200 focus:border-foreground/40 focus:bg-muted/30 focus:ring-2 focus:ring-foreground/10"
+                            />
+
+                            <p className="text-[10px] leading-4 text-muted-foreground">
+                                Human-readable name shown across the dashboard.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                                <Label
+                                    htmlFor="env-key-input"
+                                    className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground"
+                                >
+                                    Environment Key
+                                </Label>
+
+                                <span className="font-mono text-[9px] text-muted-foreground/70">
+                                    SDK / API
+                                </span>
+                            </div>
+
+                            <Input
+                                id="env-key-input"
+                                placeholder="e.g. production"
+                                value={envKey}
+                                onChange={(e) =>
                                     setEnvKey(
                                         e.target.value
                                             .toLowerCase()
                                             .replace(/[^a-z0-9-]+/g, "-")
-                                    );
+                                    )
                                 }
-                            }}
-                            required
-                            autoFocus
-                            className="text-sm"
-                        />
+                                className="h-11 rounded-xl border-border/70 bg-muted/20 px-3.5 font-mono text-sm transition-all duration-200 focus:border-foreground/40 focus:bg-muted/30 focus:ring-2 focus:ring-foreground/10"
+                                required
+                            />
+
+                            <p className="text-[10px] leading-4 text-muted-foreground">
+                                Stable identifier used by the SDK and API.
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="env-key-input" className="text-sm font-medium">Environment Key</Label>
-                        <Input
-                            id="env-key-input"
-                            placeholder="e.g. staging, production, beta"
-                            value={envKey}
-                            onChange={(e) =>
-                                setEnvKey(
-                                    e.target.value
-                                        .toLowerCase()
-                                        .replace(/[^a-z0-9-]+/g, "-")
-                                )
-                            }
-                            className="font-mono text-sm"
-                            required
-                        />
+                    {/* Runtime summary */}
+                    <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-3">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background">
+                            <KeyRound className="size-3.5 text-muted-foreground" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-foreground">
+                                    Isolated runtime
+                                </span>
+                                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-500">
+                                    READY
+                                </span>
+                            </div>
+                            <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">
+                                Flags, targeting rules, and evaluations stay scoped to this environment.
+                            </p>
+                        </div>
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="border-t border-border/60 pt-4">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => setCreateModalOpen(false)}
-                            className="text-xs sm:text-sm"
+                            className="h-10 rounded-xl px-4 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                         >
                             Cancel
                         </Button>
+
                         <Button
                             type="submit"
                             disabled={creating || !envName.trim() || !envKey.trim()}
-                            className="text-xs sm:text-sm font-semibold"
+                            className="group h-10 rounded-xl px-4 text-xs font-semibold shadow-[0_8px_24px_rgba(255,255,255,0.08)] transition-all duration-300 hover:-translate-y-px hover:shadow-[0_10px_30px_rgba(255,255,255,0.14)]"
                         >
                             {creating ? "Creating..." : "Create Environment"}
+                            {!creating && (
+                                <span className="ml-1.5 transition-transform duration-200 group-hover:translate-x-0.5">
+                                    →
+                                </span>
+                            )}
                         </Button>
                     </DialogFooter>
                 </form>

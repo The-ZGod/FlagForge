@@ -12,7 +12,6 @@ import {
     Menu,
     Moon,
     Plus,
-    Radio,
     Settings as SettingsIcon,
     Sliders,
     Sparkles,
@@ -73,6 +72,7 @@ export function TopNavigation() {
 
     const projectDropdownRef = useRef<HTMLDivElement>(null);
     const userDropdownRef = useRef<HTMLDivElement>(null);
+    const navRef = useRef<HTMLElement>(null);
     const currentUser = getCurrentUser();
 
     // Close dropdowns on outside click
@@ -265,16 +265,16 @@ export function TopNavigation() {
         effectiveProjectId && effectiveEnvId
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}`
             : effectiveProjectId
-            ? `/projects/${effectiveProjectId}`
-            : "/dashboard";
+                ? `/projects/${effectiveProjectId}`
+                : "/dashboard";
 
     // Dynamic destination for evaluation link
     const evaluationPath =
         effectiveProjectId && effectiveEnvId
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}/evaluate`
             : effectiveProjectId
-            ? `/projects/${effectiveProjectId}`
-            : "/dashboard";
+                ? `/projects/${effectiveProjectId}`
+                : "/dashboard";
 
     // Dynamic destination for api-keys link
     const apiKeysPath =
@@ -295,59 +295,107 @@ export function TopNavigation() {
     const isActivityActive = location.pathname.startsWith("/activity");
 
     return (
-        <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/95 backdrop-blur-md">
-            {/* Top Bar */}
-            <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between px-4 sm:px-6">
-                {/* Left: Branding & Project Selector */}
-                <div className="flex items-center gap-3 sm:gap-4">
-                    {/* Brand */}
+        <header
+            ref={navRef}
+            className="sticky top-0 z-50 w-full bg-[#050505]/90 text-white backdrop-blur-2xl"
+        >
+            {/* Main navigation shell */}
+            <div
+                data-nav-shell
+                className="mx-auto flex h-[68px] max-w-[1800px] items-center border-x border-white/[0.04] bg-[#080808]/70 px-4 sm:px-6 lg:px-8 transition-[background-color,border-color,box-shadow] duration-300"
+            >
+                <div className="flex w-full items-center gap-4">
+                    {/* Premium FlagForge Brand */}
                     <Link
-                        to="/dashboard"
-                        className="flex items-center gap-2.5 group transition-transform focus:outline-hidden"
+                        to="/"
+                        aria-label="FlagForge home"
+                        className="group relative flex h-[54px] w-[190px] shrink-0 items-center overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] px-2.5 shadow-[inset_0_1px_rgba(255,255,255,0.06),0_8px_30px_rgba(0,0,0,0.18)] transition-all duration-500 hover:-translate-y-px hover:border-white/[0.14] hover:bg-white/[0.035] hover:shadow-[inset_0_1px_rgba(255,255,255,0.09),0_12px_36px_rgba(0,0,0,0.28)]"
                     >
-                        <div className="flex size-8.5 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs group-hover:scale-105 transition-transform">
-                            <Radio className="size-4.5" />
-                        </div>
-                        <div className="flex flex-col text-left">
-                            <span className="text-sm font-bold tracking-tight text-foreground leading-none">
-                                FlagForge
-                            </span>
-                            <span className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                                Feature Platform
-                            </span>
-                        </div>
+                        {/* Soft ambient glow */}
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -left-8 top-1/2 size-20 -translate-y-1/2 rounded-full bg-white/[0.045] blur-2xl transition-all duration-700 group-hover:bg-white/[0.09] group-hover:scale-125"
+                        />
+
+                        {/* Logo */}
+                        <img
+                            src="/flagforge-logo.png"
+                            alt="FlagForge Feature Platform"
+                            className="relative z-10 h-[50px] w-full object-contain object-left transition-all duration-500 group-hover:scale-[1.025] group-hover:brightness-[1.08] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.14)]"
+                        />
+
+                        {/* Premium reflection sweep */}
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-y-0 -left-1/2 z-20 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/[0.16] to-transparent opacity-0 transition-all duration-700 group-hover:left-[125%] group-hover:opacity-100"
+                        />
+
+                        {/* Tiny brand status light */}
+                        <span
+                            aria-hidden="true"
+                            className="absolute bottom-2 right-2 z-20 size-1.5 rounded-full bg-white/25 shadow-[0_0_8px_rgba(255,255,255,0.18)] transition-all duration-500 group-hover:bg-white/70 group-hover:shadow-[0_0_10px_rgba(255,255,255,0.45)]"
+                        />
                     </Link>
 
-                    <div className="h-5 w-px bg-border hidden sm:block" />
-
-                    {/* Project Selector */}
-                    <div className="relative" ref={projectDropdownRef}>
+                    {/* Project selector */}
+                    <div className="relative shrink-0" ref={projectDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
-                            className="flex h-8.5 items-center gap-2 rounded-lg border border-border/70 bg-card px-3 py-1.5 text-xs sm:text-sm font-medium text-foreground transition-all hover:bg-muted/70 hover:border-border focus:outline-hidden cursor-pointer shadow-2xs"
+                            aria-label={`Current project: ${loadingProjects
+                                ? "Loading"
+                                : activeProject?.name || "Select project"
+                                }. Click to change project.`}
+                            className="group flex h-11 min-w-[205px] items-center gap-2.5 rounded-xl border border-white/[0.09] bg-white/[0.035] px-2.5 text-left shadow-[inset_0_1px_rgba(255,255,255,0.04)] transition-all duration-300 hover:-translate-y-px hover:border-white/[0.16] hover:bg-white/[0.06] focus:outline-none focus:ring-1 focus:ring-white/20"
                         >
-                            <FolderKanban className="size-4 text-muted-foreground" />
-                            <span className="max-w-[120px] sm:max-w-[170px] truncate">
-                                {loadingProjects
-                                    ? "Loading..."
-                                    : activeProject?.name || "Select project"}
-                            </span>
-                            <ChevronDown className="size-3.5 text-muted-foreground" />
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.09] bg-white/[0.05] text-white/60 transition-colors duration-300 group-hover:border-white/15 group-hover:text-white">
+                                <FolderKanban className="size-3.5" />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/30">
+                                    Project
+                                </div>
+                                <div className="mt-0.5 flex items-center gap-1.5">
+                                    <span className="max-w-[135px] truncate text-[13px] font-semibold leading-none text-white/90">
+                                        {loadingProjects
+                                            ? "Loading..."
+                                            : activeProject?.name || "Select project"}
+                                    </span>
+                                    <span className="text-[9px] font-medium text-white/25">
+                                        Change
+                                    </span>
+                                </div>
+                            </div>
+
+                            <ChevronDown
+                                className={`size-3.5 shrink-0 text-white/35 transition-transform duration-300 ${projectDropdownOpen ? "rotate-180 text-white" : ""
+                                    }`}
+                            />
                         </button>
 
                         {projectDropdownOpen && (
-                            <div className="absolute left-0 top-11 z-50 w-64 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
-                                <div className="px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                                    <span>Projects</span>
-                                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                            <div className="absolute left-0 top-[calc(100%+10px)] z-[70] w-72 overflow-hidden rounded-2xl border border-white/[0.11] bg-[#0b0b0b]/95 p-1.5 shadow-[0_25px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+                                <div className="flex items-center justify-between px-3 py-2">
+                                    <div>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/35">
+                                            Project
+                                        </span>
+                                        <p className="mt-0.5 text-[11px] text-white/25">
+                                            Select the workspace you want to manage
+                                        </p>
+                                    </div>
+                                    <Badge
+                                        variant="secondary"
+                                        className="h-5 border border-white/[0.08] bg-white/[0.05] px-1.5 text-[10px] text-white/55"
+                                    >
                                         {projects.length}
                                     </Badge>
                                 </div>
 
-                                <div className="max-h-60 overflow-y-auto space-y-0.5 my-1">
+                                <div className="my-1 max-h-64 space-y-0.5 overflow-y-auto">
                                     {projects.length === 0 ? (
-                                        <div className="px-3 py-3 text-xs text-muted-foreground text-center">
+                                        <div className="px-3 py-4 text-center text-xs text-white/35">
                                             No projects found.
                                         </div>
                                     ) : (
@@ -356,344 +404,341 @@ export function TopNavigation() {
                                                 key={project.id}
                                                 type="button"
                                                 onClick={() => handleSelectProject(project)}
-                                                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs sm:text-sm transition-colors cursor-pointer ${
-                                                    project.id === effectiveProjectId
-                                                        ? "bg-muted font-semibold text-foreground"
-                                                        : "text-foreground/80 hover:bg-muted/60 hover:text-foreground"
-                                                }`}
+                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${project.id === effectiveProjectId
+                                                    ? "bg-white text-black"
+                                                    : "text-white/65 hover:bg-white/[0.07] hover:text-white"
+                                                    }`}
                                             >
-                                                <div className="flex items-center gap-2 truncate">
-                                                    <FolderKanban className="size-3.5 text-muted-foreground shrink-0" />
+                                                <div className="flex min-w-0 items-center gap-2.5">
+                                                    <FolderKanban className="size-3.5 shrink-0 opacity-60" />
                                                     <span className="truncate">{project.name}</span>
                                                 </div>
                                                 {project.id === effectiveProjectId && (
-                                                    <Check className="size-3.5 text-primary shrink-0" />
+                                                    <Check className="size-3.5 shrink-0" />
                                                 )}
                                             </button>
                                         ))
                                     )}
                                 </div>
 
-                                <div className="border-t border-border pt-1 mt-1">
+                                <div className="border-t border-white/[0.08] pt-1">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setProjectDropdownOpen(false);
                                             setCreateProjectModalOpen(true);
                                         }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-primary font-medium hover:bg-muted/70 transition-colors cursor-pointer"
+                                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
                                     >
                                         <Plus className="size-4" />
-                                        <span>Create new project</span>
+                                        Create new project
                                     </button>
                                 </div>
                             </div>
                         )}
                     </div>
-                </div>
 
-                {/* Center: Main Navigation Links */}
-                <nav className="hidden lg:flex items-center gap-1">
-                    <NavLink
-                        to="/dashboard"
-                        className={({ isActive }) =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <LayoutDashboard className="size-4" />
-                        Dashboard
-                    </NavLink>
+                    {/* Center navigation */}
+                    <nav className="hidden min-w-0 flex-1 justify-center lg:flex">
+                        <div className="flex items-center gap-0.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1 shadow-[inset_0_1px_rgba(255,255,255,0.025)]">
+                            {[
+                                {
+                                    to: "/dashboard",
+                                    label: "Dashboard",
+                                    icon: LayoutDashboard,
+                                    active: location.pathname === "/dashboard",
+                                },
+                                {
+                                    to: featureFlagsPath,
+                                    label: "Feature Flags",
+                                    icon: Sliders,
+                                    active: isFeatureFlagsActive,
+                                },
+                                {
+                                    to: evaluationPath,
+                                    label: "Evaluation",
+                                    icon: Sparkles,
+                                    active: isEvaluationActive,
+                                },
+                                {
+                                    to: "/activity",
+                                    label: "Activity",
+                                    icon: History,
+                                    active: isActivityActive,
+                                },
+                                {
+                                    to: apiKeysPath,
+                                    label: "API Keys",
+                                    icon: SettingsIcon,
+                                    active: isApiKeysActive,
+                                },
+                                {
+                                    to: "/docs",
+                                    label: "Docs",
+                                    icon: ExternalLink,
+                                    active: isDocsActive,
+                                },
+                            ].map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <NavLink
+                                        key={item.label}
+                                        to={item.to}
 
-                    <NavLink
-                        to={featureFlagsPath}
-                        className={() =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isFeatureFlagsActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <Sliders className="size-4" />
-                        Feature Flags
-                    </NavLink>
+                                        className={`group relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition-all duration-300 hover:-translate-y-px xl:px-3.5 ${item.active
+                                            ? "bg-white text-black shadow-[0_6px_20px_rgba(255,255,255,0.10)]"
+                                            : "text-white/40 hover:bg-white/[0.06] hover:text-white/85"
+                                            }`}
+                                    >
+                                        <Icon className="size-3.5 transition-transform duration-300 group-hover:scale-110" />
+                                        <span className="hidden xl:inline">{item.label}</span>
+                                        {item.active && (
+                                            <span className="absolute inset-x-3 -bottom-1 h-px bg-white/60 blur-[2px]" />
+                                        )}
+                                    </NavLink>
+                                );
+                            })}
+                        </div>
+                    </nav>
 
-                    <NavLink
-                        to={evaluationPath}
-                        className={() =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isEvaluationActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <Sparkles className="size-4" />
-                        Evaluation
-                    </NavLink>
+                    {/* Right controls */}
+                    <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                        <div className="hidden items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1 sm:flex">
+                            <div>
+                                <ThemeToggle />
+                            </div>
 
-                    <NavLink
-                        to="/activity"
-                        className={() =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isActivityActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <History className="size-4" />
-                        Activity
-                    </NavLink>
+                            <NavLink
+                                to="/settings"
 
-                    <NavLink
-                        to={apiKeysPath}
-                        className={() =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isApiKeysActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <SettingsIcon className="size-4" />
-                        API Keys
-                    </NavLink>
+                                className={({ isActive }) =>
+                                    `flex size-9 items-center justify-center rounded-xl border transition-all duration-300 ${isActive
+                                        ? "border-white/[0.14] bg-white/[0.09] text-white"
+                                        : "border-transparent text-white/40 hover:border-white/[0.08] hover:bg-white/[0.06] hover:text-white"
+                                    }`
+                                }
+                                title="Settings"
+                            >
+                                <SettingsIcon className="size-4" />
+                            </NavLink>
+                        </div>
 
-                    <NavLink
-                        to="/docs"
-                        className={() =>
-                            `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                isDocsActive
-                                    ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                            }`
-                        }
-                    >
-                        <ExternalLink className="size-4" />
-                        Docs
-                    </NavLink>
-                </nav>
+                        {/* User profile */}
+                        <div className="relative" ref={userDropdownRef}>
+                            <button
+                                type="button"
 
-                {/* Right: Theme Toggle, Settings & User Profile Controls */}
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                    {/* Direct Theme Toggle Button */}
-                    <ThemeToggle />
+                                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                                className="group flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-2.5 transition-all duration-300 hover:border-white/[0.15] hover:bg-white/[0.065] focus:outline-none"
+                            >
+                                <div className="flex size-6.5 items-center justify-center rounded-lg bg-white text-[10px] font-bold text-black">
+                                    {currentUser?.email
+                                        ? currentUser.email.charAt(0).toUpperCase()
+                                        : "U"}
+                                </div>
+                                <span className="hidden max-w-[100px] truncate text-xs font-semibold text-white/75 xl:inline">
+                                    {currentUser?.name ||
+                                        currentUser?.email?.split("@")[0] ||
+                                        "Account"}
+                                </span>
+                                <ChevronDown
+                                    className={`size-3.5 text-white/35 transition-transform duration-300 ${userDropdownOpen ? "rotate-180" : ""
+                                        }`}
+                                />
+                            </button>
 
-                    <NavLink
-                        to="/settings"
-                        className={({ isActive }) =>
-                            `flex size-8.5 items-center justify-center rounded-lg border border-border/70 transition-colors ${
-                                isActive
-                                    ? "bg-muted text-foreground border-border"
-                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                            }`
-                        }
-                        title="Profile Settings"
-                    >
-                        <SettingsIcon className="size-4.5" />
-                    </NavLink>
+                            {userDropdownOpen && (
+                                <div className="absolute right-0 top-[calc(100%+10px)] z-[70] w-60 overflow-hidden rounded-2xl border border-white/[0.11] bg-[#0b0b0b]/95 p-1.5 shadow-[0_25px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+                                    <div className="px-3 py-2.5">
+                                        <p className="truncate text-xs font-semibold text-white">
+                                            {currentUser?.name || "FlagForge User"}
+                                        </p>
+                                        <p className="mt-0.5 truncate text-[11px] text-white/35">
+                                            {currentUser?.email || "Signed in"}
+                                        </p>
+                                    </div>
 
-                    {/* User profile dropdown */}
-                    <div className="relative" ref={userDropdownRef}>
+                                    <div className="border-t border-white/[0.08] py-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleTheme()}
+                                            className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                {theme === "dark" ? (
+                                                    <Sun className="size-4" />
+                                                ) : (
+                                                    <Moon className="size-4" />
+                                                )}
+                                                Theme
+                                            </div>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/30">
+                                                {theme}
+                                            </span>
+                                        </button>
+
+                                        <Link
+                                            to="/settings"
+                                            onClick={() => setUserDropdownOpen(false)}
+                                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                                        >
+                                            <SettingsIcon className="size-4" />
+                                            Account settings
+                                        </Link>
+                                    </div>
+
+                                    <div className="border-t border-white/[0.08] pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                logout();
+                                                window.location.href = "/login";
+                                            }}
+                                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-red-300/70 transition-colors hover:bg-red-400/[0.08] hover:text-red-300"
+                                        >
+                                            <LogOut className="size-4" />
+                                            Sign out
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Mobile menu */}
                         <button
                             type="button"
-                            onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                            className="flex h-8.5 items-center gap-2 rounded-lg border border-border/70 bg-card px-2.5 text-xs sm:text-sm font-medium text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-white/60 transition-all hover:border-white/[0.15] hover:bg-white/[0.065] hover:text-white lg:hidden"
+                            aria-label="Toggle navigation menu"
                         >
-                            <div className="flex size-5.5 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
-                                {currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : "U"}
-                            </div>
-                            <span className="hidden sm:inline max-w-[110px] truncate text-xs font-semibold">
-                                {currentUser?.name || currentUser?.email?.split("@")[0] || "Account"}
-                            </span>
-                            <ChevronDown className="size-3.5 text-muted-foreground" />
+                            {mobileMenuOpen ? (
+                                <X className="size-4.5" />
+                            ) : (
+                                <Menu className="size-4.5" />
+                            )}
                         </button>
-
-                        {userDropdownOpen && (
-                            <div className="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100">
-                                <div className="px-2.5 py-2">
-                                    <p className="text-xs font-semibold text-foreground truncate">
-                                        {currentUser?.name || "FlagForge User"}
-                                    </p>
-                                    <p className="text-[11px] text-muted-foreground truncate">
-                                        {currentUser?.email || "Signed in"}
-                                    </p>
-                                </div>
-
-                                <div className="border-t border-border my-1" />
-
-                                <button
-                                    type="button"
-                                    onClick={() => toggleTheme()}
-                                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs sm:text-sm text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors cursor-pointer"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        {theme === "dark" ? (
-                                            <Sun className="size-4 text-muted-foreground" />
-                                        ) : (
-                                            <Moon className="size-4 text-muted-foreground" />
-                                        )}
-                                        <span>Theme</span>
-                                    </div>
-                                    <Badge variant="outline" className="text-[10px] font-semibold h-4.5 px-1.5 capitalize">
-                                        {theme === "dark" ? "Dark" : "Light"}
-                                    </Badge>
-                                </button>
-
-                                <Link
-                                    to="/settings"
-                                    onClick={() => setUserDropdownOpen(false)}
-                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-foreground/80 hover:bg-muted/60 hover:text-foreground transition-colors"
-                                >
-                                    <SettingsIcon className="size-4 text-muted-foreground" />
-                                    <span>Account Profile</span>
-                                </Link>
-
-                                <div className="border-t border-border my-1" />
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        logout();
-                                        window.location.href = "/login";
-                                    }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                                >
-                                    <LogOut className="size-4" />
-                                    <span>Sign Out</span>
-                                </button>
-                            </div>
-                        )}
                     </div>
-
-                    {/* Mobile menu trigger */}
-                    <button
-                        type="button"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="flex lg:hidden size-8.5 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                    >
-                        {mobileMenuOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Navigation Drawer */}
+            {/* Mobile drawer */}
             {mobileMenuOpen && (
-                <div className="lg:hidden border-t border-border bg-card p-4 space-y-1 animate-in slide-in-from-top-2 duration-150">
-                    <NavLink
-                        to="/dashboard"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <LayoutDashboard className="size-4.5" />
-                        Dashboard
-                    </NavLink>
-                    <NavLink
-                        to={featureFlagsPath}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <Sliders className="size-4.5" />
-                        Feature Flags
-                    </NavLink>
-                    <NavLink
-                        to={evaluationPath}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <Sparkles className="size-4.5" />
-                        Evaluation
-                    </NavLink>
-                    <NavLink
-                        to="/activity"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <History className="size-4.5" />
-                        Activity
-                    </NavLink>
-                    <NavLink
-                        to={apiKeysPath}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <SettingsIcon className="size-4.5" />
-                        API Keys
-                    </NavLink>
-                    <NavLink
-                        to="/docs"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <ExternalLink className="size-4.5" />
-                        Docs
-                    </NavLink>
-                    <NavLink
-                        to="/settings"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        <SettingsIcon className="size-4.5" />
-                        Profile Settings
-                    </NavLink>
+                <div className="absolute left-3 right-3 top-[calc(100%+8px)] z-[60] overflow-hidden rounded-2xl border border-white/[0.10] bg-[#0a0a0a]/95 p-2 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:hidden">
+                    {[
+                        {
+                            to: "/dashboard",
+                            label: "Dashboard",
+                            icon: LayoutDashboard,
+                            active: location.pathname === "/dashboard",
+                        },
+                        {
+                            to: featureFlagsPath,
+                            label: "Feature Flags",
+                            icon: Sliders,
+                            active: isFeatureFlagsActive,
+                        },
+                        {
+                            to: evaluationPath,
+                            label: "Evaluation",
+                            icon: Sparkles,
+                            active: isEvaluationActive,
+                        },
+                        {
+                            to: "/activity",
+                            label: "Activity",
+                            icon: History,
+                            active: isActivityActive,
+                        },
+                        {
+                            to: apiKeysPath,
+                            label: "API Keys",
+                            icon: SettingsIcon,
+                            active: isApiKeysActive,
+                        },
+                        {
+                            to: "/docs",
+                            label: "Docs",
+                            icon: ExternalLink,
+                            active: isDocsActive,
+                        },
+                        {
+                            to: "/settings",
+                            label: "Profile Settings",
+                            icon: SettingsIcon,
+                            active: location.pathname.startsWith("/settings"),
+                        },
+                    ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <NavLink
+                                key={item.label}
+                                to={item.to}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-colors ${item.active
+                                    ? "bg-white text-black"
+                                    : "text-white/55 hover:bg-white/[0.06] hover:text-white"
+                                    }`}
+                            >
+                                <Icon className="size-4" />
+                                {item.label}
+                            </NavLink>
+                        );
+                    })}
 
-                    <div className="border-t border-border my-2 pt-2">
+                    <div className="mt-2 border-t border-white/[0.08] pt-2">
                         <button
                             type="button"
                             onClick={() => {
                                 toggleTheme();
                                 setMobileMenuOpen(false);
                             }}
-                            className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted cursor-pointer"
+                            className="flex w-full items-center justify-between rounded-xl px-3.5 py-3 text-sm font-semibold text-white/55 hover:bg-white/[0.06] hover:text-white"
                         >
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-3">
                                 {theme === "dark" ? (
-                                    <Sun className="size-4.5 text-muted-foreground" />
+                                    <Sun className="size-4" />
                                 ) : (
-                                    <Moon className="size-4.5 text-muted-foreground" />
+                                    <Moon className="size-4" />
                                 )}
-                                <span>Appearance</span>
+                                Appearance
                             </div>
-                            <Badge variant="outline" className="text-xs capitalize font-semibold">
-                                {theme === "dark" ? "Dark Mode" : "Light Mode"}
-                            </Badge>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/30">
+                                {theme}
+                            </span>
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Sub-Header: Contextual Environment Bar */}
+            {/* Environment context bar */}
             {effectiveProjectId && (
-                <div className="border-t border-border/60 bg-muted/25 px-4 sm:px-6">
-                    <div className="mx-auto flex h-10 max-w-[1600px] items-center justify-between gap-4 overflow-x-auto">
-                        <div className="flex items-center gap-2 shrink-0">
-                            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/90 shrink-0">
-                                <Layers className="size-3 text-muted-foreground" />
-                                Environment:
+                <div className="border-t border-white/[0.06] bg-[#070707]/90 backdrop-blur-xl">
+                    <div className="mx-auto flex min-h-10 max-w-[1800px] items-center justify-between gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex shrink-0 items-center gap-2.5">
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                                <Layers className="size-3" />
+                                Environment
                             </span>
 
                             {loadingEnvironments ? (
-                                <span className="text-xs text-muted-foreground">Loading environments...</span>
+                                <span className="text-xs text-white/35">Loading...</span>
                             ) : environments.length === 0 ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground">No environments yet</span>
+                                    <span className="text-xs text-white/35">
+                                        No environments
+                                    </span>
                                     <Button
                                         size="xs"
                                         variant="outline"
                                         onClick={() => setCreateEnvModalOpen(true)}
-                                        className="h-6 text-[11px] px-2"
+                                        className="h-6 border-white/[0.12] bg-white/[0.04] px-2 text-[10px] text-white"
                                     >
-                                        <Plus className="size-3 mr-1" />
+                                        <Plus className="mr-1 size-3" />
                                         Create
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+                                <div className="flex items-center gap-1.5 py-1">
                                     {environments.map((env) => {
                                         const isSelected = env.id === effectiveEnvId;
                                         return (
@@ -701,20 +746,18 @@ export function TopNavigation() {
                                                 key={env.id}
                                                 type="button"
                                                 onClick={() => handleSelectEnvironment(env)}
-                                                className={`group flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer ${
-                                                    isSelected
-                                                        ? "bg-foreground text-background shadow-xs font-semibold"
-                                                        : "bg-background/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/60"
-                                                }`}
+                                                className={`group flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${isSelected
+                                                    ? "bg-white text-black shadow-[0_4px_18px_rgba(255,255,255,0.08)]"
+                                                    : "border border-white/[0.07] bg-white/[0.025] text-white/40 hover:border-white/[0.13] hover:bg-white/[0.06] hover:text-white"
+                                                    }`}
                                             >
                                                 <span
-                                                    className={`size-1.5 rounded-full ${
-                                                        isSelected
-                                                            ? "bg-background"
-                                                            : "bg-muted-foreground/60 group-hover:bg-primary"
-                                                    }`}
+                                                    className={`size-1.5 rounded-full ${isSelected
+                                                        ? "bg-black"
+                                                        : "bg-white/25 group-hover:bg-white"
+                                                        }`}
                                                 />
-                                                <span>{env.name}</span>
+                                                {env.name}
                                             </button>
                                         );
                                     })}
@@ -722,7 +765,7 @@ export function TopNavigation() {
                                     <button
                                         type="button"
                                         onClick={() => setCreateEnvModalOpen(true)}
-                                        className="inline-flex size-5 items-center justify-center rounded-full border border-dashed border-border/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                                        className="inline-flex size-6 items-center justify-center rounded-lg border border-dashed border-white/[0.13] text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white"
                                         title="Add Environment"
                                     >
                                         <Plus className="size-3" />
@@ -731,15 +774,20 @@ export function TopNavigation() {
                             )}
                         </div>
 
-                        {/* Breadcrumb path info */}
                         {activeProject && (
-                            <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground/80 shrink-0">
-                                <span className="font-medium text-foreground/70">{activeProject.name}</span>
+                            <div className="hidden shrink-0 items-center gap-2 text-[11px] text-white/35 lg:flex">
+                                <span className="text-white/25">Project</span>
+                                <span className="font-semibold text-white/60">
+                                    {activeProject.name}
+                                </span>
                                 {activeEnvironment && (
                                     <>
-                                        <span>/</span>
-                                        <span className="font-semibold text-foreground">{activeEnvironment.name}</span>
-                                        <code className="ml-1 text-[10px] bg-muted px-1.5 py-0.5 rounded-sm font-mono text-muted-foreground">
+                                        <span className="text-white/20">/</span>
+                                        <span className="text-white/25">Environment</span>
+                                        <span className="font-semibold text-white">
+                                            {activeEnvironment.name}
+                                        </span>
+                                        <code className="rounded-md border border-white/[0.06] bg-white/[0.035] px-1.5 py-0.5 font-mono text-[9px] text-white/30">
                                             {activeEnvironment.key}
                                         </code>
                                     </>
