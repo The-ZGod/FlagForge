@@ -186,7 +186,7 @@ export function Dashboard() {
     const totalRules = flags.reduce((total, flag) => total + flag.rules.length, 0);
 
     return (
-        <div className="relative min-h-full overflow-hidden bg-[#080808] text-white">
+        <div className="relative min-h-screen w-full overflow-x-hidden bg-[#080808] text-white">
             {/* Ambient dashboard lighting */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[radial-gradient(circle_at_50%_-10%,rgba(255,255,255,0.08),transparent_42%),linear-gradient(180deg,#0b0b0b_0%,#070707_55%,#050505_100%)]">
                 <div className="absolute left-[10%] top-[-18rem] h-[38rem] w-[38rem] rounded-full bg-white/[0.055] blur-[120px]" />
@@ -194,28 +194,28 @@ export function Dashboard() {
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
             </div>
 
-            <div className="mx-auto w-full max-w-[1560px] space-y-7 p-4 sm:p-6 lg:p-8 xl:p-10">
+            <div className="mx-auto w-full max-w-screen-2xl space-y-5 p-3 sm:space-y-7 sm:p-5 md:p-6 lg:p-8 xl:p-10">
                 {/* Command header */}
-                <section className="dashboard-reveal relative overflow-hidden rounded-3xl border border-white/[0.14] bg-white/[0.035] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl sm:p-7">
+                <section className="dashboard-reveal relative overflow-hidden rounded-2xl border border-white/[0.14] bg-white/[0.035] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl sm:rounded-3xl sm:p-6 md:p-7">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.13),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.035),transparent_55%)]" />
-                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="max-w-2xl space-y-3">
+                    <div className="relative flex min-w-0 flex-col gap-5 md:gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="min-w-0 max-w-2xl space-y-3">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.14] bg-white/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65 shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                                 <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
                                 Control Center
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold tracking-[-0.045em] text-white sm:text-4xl lg:text-[2.85rem]">
+                                <h1 className="text-[1.75rem] font-bold leading-tight tracking-[-0.045em] text-white sm:text-4xl lg:text-[2.85rem]">
                                     Dashboard Overview
                                 </h1>
-                                <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">
+                                <p className="mt-2 max-w-xl text-[13px] leading-5 text-white/55 sm:text-sm sm:leading-6">
                                     Monitor your release surface, environments, feature flags, and targeting rules from one place.
                                 </p>
                             </div>
                         </div>
 
                         {projects.length > 0 && environments.length > 0 && (
-                            <div className="flex flex-col gap-2 sm:flex-row">
+                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                                 <Link to={`/projects/${projects[0].id}/environments/${environments[0].id}/evaluate`}>
                                     <Button variant="outline" className="group h-10 w-full gap-2 rounded-xl border-white/[0.14] bg-white/[0.045] px-4 text-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/[0.24] hover:bg-white/[0.08] hover:-translate-y-0.5 sm:w-auto">
                                         <Sparkles className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
@@ -235,7 +235,7 @@ export function Dashboard() {
                 </section>
 
                 {error && (
-                    <div className="dashboard-reveal flex items-center justify-between gap-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    <div className="dashboard-reveal flex flex-col items-start justify-between gap-3 rounded-2xl sm:flex-row sm:items-center border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                         <span>{error}</span>
                         <button type="button" onClick={() => setError("")} className="shrink-0 text-xs underline">
                             Dismiss
@@ -244,7 +244,7 @@ export function Dashboard() {
                 )}
 
                 {/* System snapshot */}
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <section className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                     {[
                         {
                             label: "Projects",
@@ -275,16 +275,16 @@ export function Dashboard() {
                         return (
                             <Card
                                 key={metric.label}
-                                className="dashboard-metric group relative overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.035] shadow-[0_18px_60px_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1.5 hover:border-white/[0.22] hover:bg-white/[0.055] hover:shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
+                                className="dashboard-metric group relative min-w-0 overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.035] shadow-[0_18px_60px_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1.5 hover:border-white/[0.22] hover:bg-white/[0.055] hover:shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
                             >
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(220px_circle_at_var(--mx,50%)_0%,rgba(255,255,255,0.12),transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                                <CardContent className="relative p-5">
+                                <CardContent className="relative p-4 sm:p-5">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
                                                 {metric.label}
                                             </p>
-                                            <div className="pt-2 text-4xl font-bold tracking-[-0.04em] text-white">
+                                            <div className="pt-2 text-3xl font-bold tracking-[-0.04em] text-white sm:text-4xl">
                                                 {loading ? <Skeleton className="h-9 w-14" /> : metric.value}
                                             </div>
                                         </div>
@@ -302,10 +302,10 @@ export function Dashboard() {
                 </section>
 
                 {/* Operational overview */}
-                <section className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-                    <Card className="dashboard-reveal h-full overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.03] shadow-[0_22px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
-                        <CardHeader className="min-h-[92px] border-b border-white/[0.09] bg-white/[0.018] px-5 py-4 sm:px-6">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <section className="grid min-w-0 items-stretch gap-4 md:gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+                    <Card className="dashboard-reveal h-full min-w-0 overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.03] shadow-[0_22px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
+                        <CardHeader className="min-h-[92px] border-b border-white/[0.09] bg-white/[0.018] px-4 py-4 sm:px-6">
+                            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <CardTitle className="text-base font-semibold tracking-tight text-white">
                                         Active Feature Flags
@@ -350,15 +350,15 @@ export function Dashboard() {
                                     return (
                                         <div
                                             key={flag.id}
-                                            className="dashboard-flag-row group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.16] hover:bg-white/[0.05] sm:p-5"
+                                            className="dashboard-flag-row group relative min-w-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.16] hover:bg-white/[0.05] sm:p-5"
                                         >
                                             {/* Flag identity */}
-                                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                            <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2.5">
                                                         <Link
                                                             to={flagUrl}
-                                                            className="truncate text-base font-bold tracking-tight text-white transition-colors hover:text-white/75 sm:text-lg"
+                                                            className="block max-w-full truncate text-sm font-bold tracking-tight text-white transition-colors hover:text-white/75 sm:text-lg"
                                                         >
                                                             {flag.name}
                                                         </Link>
@@ -374,11 +374,11 @@ export function Dashboard() {
                                                         </Badge>
                                                     </div>
 
-                                                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-white/40">
+                                                    <div className="mt-2 flex max-w-full flex-wrap items-center gap-1.5 text-[10px] text-white/40 sm:gap-2 sm:text-[11px]">
                                                         <button
                                                             type="button"
                                                             onClick={(e) => handleCopyKey(flag.key, e)}
-                                                            className="group/key inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-white/65 transition-all hover:border-white/20 hover:bg-black/50 hover:text-white"
+                                                            className="group/key inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-black/30 px-2 py-1.5 font-mono text-[10px] text-white/65 transition-all hover:border-white/20 hover:bg-black/50 hover:text-white sm:text-[11px]"
                                                             title="Copy feature flag key"
                                                         >
                                                             {flag.key}
@@ -396,8 +396,8 @@ export function Dashboard() {
                                                 </div>
 
                                                 {/* Primary controls */}
-                                                <div className="flex items-center gap-2 lg:pt-0.5">
-                                                    <span className={`text-[11px] font-semibold ${flag.enabled ? "text-emerald-300" : "text-white/40"
+                                                <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:pt-0.5">
+                                                    <span className={`mr-auto text-[10px] font-semibold sm:text-[11px] lg:mr-0 ${flag.enabled ? "text-emerald-300" : "text-white/40"
                                                         }`}>
                                                         {flag.enabled ? "Serving users" : "Not serving users"}
                                                     </span>
@@ -419,7 +419,7 @@ export function Dashboard() {
                                             </div>
 
                                             {/* Release configuration */}
-                                            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                            <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-2">
                                                 <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3.5">
                                                     <div className="flex items-center justify-between gap-3">
                                                         <div className="flex items-center gap-2">
@@ -435,7 +435,7 @@ export function Dashboard() {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span className="font-mono text-sm font-bold text-white">
+                                                        <span className="shrink-0 font-mono text-sm font-bold text-white">
                                                             {flag.rolloutPercentage}%
                                                         </span>
                                                     </div>
@@ -491,10 +491,10 @@ export function Dashboard() {
                     </Card>
 
                     {/* Runtime Health */}
-                    <Card className="dashboard-reveal group relative h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-all duration-500 hover:border-white/[0.14] hover:bg-white/[0.035]">
+                    <Card className="dashboard-reveal group relative h-full min-w-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-all duration-500 hover:border-white/[0.14] hover:bg-white/[0.035]">
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(280px_circle_at_100%_0%,rgba(255,255,255,0.06),transparent_65%)] opacity-80" />
 
-                        <CardHeader className="relative min-h-[92px] border-b border-white/[0.07] px-5 py-4">
+                        <CardHeader className="relative min-h-[92px] border-b border-white/[0.07] px-4 py-4 sm:px-5">
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <div className="mb-2 flex items-center gap-2">
@@ -520,7 +520,7 @@ export function Dashboard() {
                             </div>
                         </CardHeader>
 
-                        <CardContent className="relative flex h-[calc(100%-92px)] flex-col space-y-3 p-5">
+                        <CardContent className="relative flex h-auto min-h-[calc(100%-92px)] flex-col space-y-3 p-4 sm:p-5">
                             {/* Engine status */}
                             <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
                                 <div className="flex items-start justify-between gap-3">
@@ -571,7 +571,7 @@ export function Dashboard() {
                             </div>
 
                             {/* Snapshot */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
                                 <div className="rounded-xl border border-white/[0.08] bg-black/20 p-3.5">
                                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
                                         Flags
@@ -597,7 +597,7 @@ export function Dashboard() {
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-xs text-white/40">
+                            <div className="flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-3 text-[11px] leading-5 text-white/40 sm:px-3.5 sm:text-xs">
                                 <Zap className="mt-0.5 size-3.5 shrink-0 text-white/55" />
                                 <span>Changes are reflected across the current workspace.</span>
                             </div>
@@ -606,14 +606,14 @@ export function Dashboard() {
                 </section>
 
                 {/* Bottom command strip */}
-                <section className="dashboard-reveal flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/50 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
+                <section className="dashboard-reveal flex min-w-0 flex-col gap-3 rounded-2xl border border-border/60 bg-card/50 p-3 backdrop-blur-xl sm:p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-xl border border-border/70 bg-background">
                             <Activity className="size-4 text-muted-foreground" />
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-foreground">Workspace is up to date</p>
-                            <p className="text-[11px] text-muted-foreground">Live configuration loaded from your FlagForge environment.</p>
+                            <p className="text-[10px] leading-5 text-muted-foreground sm:text-[11px]">Live configuration loaded from your FlagForge environment.</p>
                         </div>
                     </div>
                     <Button

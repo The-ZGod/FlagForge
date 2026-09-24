@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     AlertCircle,
@@ -136,6 +137,57 @@ export function FeatureFlagDetail() {
     const [evaluating, setEvaluating] = useState(false);
     const [evalError, setEvalError] = useState("");
     const [evalLatency, setEvalLatency] = useState<number | null>(null);
+
+    // Evaluation UI animation refs
+    const evalSectionRef = useRef<HTMLDivElement>(null);
+    const evalFormRef = useRef<HTMLDivElement>(null);
+    const evalOutputRef = useRef<HTMLDivElement>(null);
+    const evalRowsRef = useRef<HTMLDivElement>(null);
+
+    // Premium evaluation-panel motion. Kept before conditional returns so hook order stays stable.
+    useLayoutEffect(() => {
+        const root = evalSectionRef.current;
+        if (!root) return;
+
+        const ctx = gsap.context(() => {
+            gsap.fromTo(
+                root.querySelectorAll("[data-eval-animate]"),
+                { opacity: 0, y: 18 },
+                { opacity: 1, y: 0, duration: 0.55, stagger: 0.07, ease: "power3.out", clearProps: "transform" }
+            );
+
+            const rows = evalRowsRef.current?.querySelectorAll("[data-eval-row]");
+            if (rows?.length) {
+                gsap.fromTo(
+                    rows,
+                    { opacity: 0, x: -10 },
+                    { opacity: 1, x: 0, duration: 0.35, stagger: 0.06, ease: "power2.out", delay: 0.18, clearProps: "transform" }
+                );
+            }
+        }, root);
+
+        return () => ctx.revert();
+    }, [flag?.id]);
+
+    useLayoutEffect(() => {
+        if (!evalOutputRef.current) return;
+
+        if (evalResult) {
+            const ctx = gsap.context(() => {
+                gsap.fromTo(
+                    "[data-eval-result]",
+                    { opacity: 0, scale: 0.96, y: 12 },
+                    { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "back.out(1.5)" }
+                );
+                gsap.fromTo(
+                    "[data-eval-result-icon]",
+                    { opacity: 0, scale: 0.6, rotate: -12 },
+                    { opacity: 1, scale: 1, rotate: 0, duration: 0.5, delay: 0.12, ease: "back.out(2)" }
+                );
+            }, evalOutputRef);
+            return () => ctx.revert();
+        }
+    }, [evalResult]);
 
     // Initial load
     useEffect(() => {
@@ -667,175 +719,233 @@ export function FeatureFlagDetail() {
 
                 {/* Evaluation Tab */}
                 <TabsContent value="evaluation" className="space-y-6 pt-2">
-                    <div className="grid gap-6 md:grid-cols-12">
-                        {/* Evaluation Form */}
-                        <Card className="md:col-span-7 shadow-xs">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-bold">
-                                    Flag Evaluation Simulator
-                                </CardTitle>
-                                <CardDescription className="text-xs sm:text-sm">
-                                    Test deterministic bucketing and targeting rules for <code className="font-mono font-semibold text-foreground">{flag.key}</code>.
-                                </CardDescription>
-                            </CardHeader>
+                    <div ref={evalSectionRef} className="relative">
+                        {/* Ambient evaluation workspace lighting */}
+                        <div className="pointer-events-none absolute -inset-x-8 -top-8 h-64 overflow-hidden rounded-[2rem] opacity-70">
+                            <div className="eval-ambient absolute left-1/4 top-0 size-72 rounded-full bg-white/[0.025] blur-[100px]" />
+                            <div className="absolute right-0 top-20 size-56 rounded-full bg-white/[0.018] blur-[90px]" />
+                        </div>
 
-                            <CardContent>
-                                <form onSubmit={handleRunEvaluation} className="space-y-4">
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="eval-user-id" className="text-sm font-medium">
-                                            User ID (Required for Rollout Bucketing)
-                                        </Label>
-                                        <Input
-                                            id="eval-user-id"
-                                            value={evalUserId}
-                                            onChange={(e) => setEvalUserId(e.target.value)}
-                                            placeholder="e.g. user_84920, guest-session-12"
-                                            className="font-mono text-sm"
-                                            required
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            The evaluation engine computes a deterministic hash against this User ID.
-                                        </p>
+                        <div className="relative mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between" data-eval-animate>
+                            <div>
+                                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                    <span className="inline-block size-1.5 rounded-full bg-foreground/70" />
+                                    Runtime Simulator
+                                </div>
+                                <h2 className="text-lg font-bold tracking-tight">Test this flag before shipping</h2>
+                                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                                    Enter a user and their attributes to see exactly how FlagForge resolves <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-foreground">{flag.key}</code>.
+                                </p>
+                            </div>
+                            <div className="hidden rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono text-muted-foreground sm:block">
+                                deterministic evaluation
+                            </div>
+                        </div>
+
+                        <div className="relative grid gap-6 md:grid-cols-12">
+                            {/* Evaluation Form */}
+                            <Card ref={evalFormRef} data-eval-animate className="group relative overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] md:col-span-7">
+                                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                <CardHeader className="relative pb-3">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                            <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
+                                                <Play className="size-3.5" />
+                                            </span>
+                                            Input context
+                                        </div>
+                                        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">01 / 02</span>
                                     </div>
+                                    <CardTitle className="text-base font-bold">Test a User</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        Simulate the runtime decision using the same deterministic engine used by your SDK.
+                                    </CardDescription>
+                                </CardHeader>
 
-                                    <div className="space-y-2 pt-2 border-t border-border">
-                                        <div className="flex items-center justify-between">
-                                            <Label className="text-sm font-medium">
-                                                Evaluation Attributes (Context)
-                                            </Label>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="xs"
-                                                onClick={addAttributeRow}
-                                                className="h-7 text-xs px-2.5 gap-1"
-                                            >
-                                                <Plus className="size-3.5" />
-                                                Add Attribute
-                                            </Button>
+                                <CardContent>
+                                    <form onSubmit={handleRunEvaluation} className="space-y-4">
+                                        <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3.5 transition-all duration-300 hover:border-white/[0.14] hover:bg-white/[0.025]">
+                                            <div className="mb-2 flex items-center justify-between gap-3">
+                                                <Label htmlFor="eval-user-id" className="text-sm font-semibold">User identity</Label>
+                                                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">required</span>
+                                            </div>
+                                            <Input
+                                                id="eval-user-id"
+                                                value={evalUserId}
+                                                onChange={(e) => setEvalUserId(e.target.value)}
+                                                placeholder="e.g. user_84920, guest-session-12"
+                                                className="font-mono text-sm"
+                                                required
+                                            />
+                                            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                                <span className="inline-block size-1 rounded-full bg-foreground/50" />
+                                                Used as the deterministic hash input for percentage rollout.
+                                            </p>
                                         </div>
 
-                                        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                                            {evalAttributes.map((attr, index) => (
-                                                <div key={index} className="flex items-center gap-2">
-                                                    <Input
-                                                        placeholder="Key (e.g. country)"
-                                                        value={attr.key}
-                                                        onChange={(e) =>
-                                                            updateAttributeRow(index, e.target.value, attr.value)
-                                                        }
-                                                        className="font-mono text-xs sm:text-sm flex-1"
-                                                    />
-                                                    <Input
-                                                        placeholder="Value (e.g. US)"
-                                                        value={attr.value}
-                                                        onChange={(e) =>
-                                                            updateAttributeRow(index, attr.key, e.target.value)
-                                                        }
-                                                        className="font-mono text-xs sm:text-sm flex-1"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon-xs"
-                                                        onClick={() => removeAttributeRow(index)}
-                                                        className="text-muted-foreground hover:text-destructive"
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                    </Button>
+                                        <div className="space-y-3 border-t border-white/[0.07] pt-4">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div>
+                                                    <Label className="text-sm font-semibold">Context attributes</Label>
+                                                    <p className="mt-0.5 text-[11px] text-muted-foreground">Optional values used by targeting rules.</p>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="xs"
+                                                    onClick={addAttributeRow}
+                                                    className="h-7 text-xs px-2.5 gap-1"
+                                                >
+                                                    <Plus className="size-3.5" />
+                                                    Add Attribute
+                                                </Button>
+                                            </div>
 
-                                    {evalError && (
-                                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
-                                            {evalError}
+                                            <div ref={evalRowsRef} className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                {evalAttributes.map((attr, index) => (
+                                                    <div key={index} data-eval-row className="group/row flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/20 p-1.5 transition-all duration-200 hover:border-white/[0.13] hover:bg-white/[0.025]">
+                                                        <Input
+                                                            placeholder="Key (e.g. country)"
+                                                            value={attr.key}
+                                                            onChange={(e) =>
+                                                                updateAttributeRow(index, e.target.value, attr.value)
+                                                            }
+                                                            className="font-mono text-xs sm:text-sm flex-1"
+                                                        />
+                                                        <Input
+                                                            placeholder="Value (e.g. US)"
+                                                            value={attr.value}
+                                                            onChange={(e) =>
+                                                                updateAttributeRow(index, attr.key, e.target.value)
+                                                            }
+                                                            className="font-mono text-xs sm:text-sm flex-1"
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon-xs"
+                                                            onClick={() => removeAttributeRow(index)}
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {evalError && (
+                                            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
+                                                {evalError}
+                                            </div>
+                                        )}
+
+                                        <Button
+                                            type="submit"
+                                            disabled={evaluating || !evalUserId.trim()}
+                                            className="group/run relative h-11 w-full overflow-hidden gap-2 text-sm font-semibold shadow-[0_12px_35px_rgba(255,255,255,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(255,255,255,0.12)]"
+                                        >
+                                            <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-black/10 transition-transform duration-700 group-hover/run:translate-x-[430%]" />
+                                            <Play className="relative size-4 transition-transform duration-300 group-hover/run:translate-x-0.5" />
+                                            <span className="relative">{evaluating ? "Evaluating runtime..." : "Run Evaluation"}</span>
+                                        </Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+
+                            {/* Evaluation Result Output */}
+                            <Card ref={evalOutputRef} data-eval-animate className="group relative flex flex-col justify-between overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] md:col-span-5">
+                                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                <CardHeader className="relative pb-3">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                            <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
+                                                <Sparkles className="size-3.5" />
+                                            </span>
+                                            Runtime decision
+                                        </div>
+                                        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">02 / 02</span>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Evaluation Result</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        The exact decision returned by the FlagForge evaluation engine.
+                                    </CardDescription>
+                                </CardHeader>
+
+                                <CardContent className="relative flex min-h-[340px] flex-1 flex-col justify-center">
+                                    {!evalResult ? (
+                                        <div data-eval-empty className="relative overflow-hidden rounded-2xl border border-dashed border-white/[0.08] bg-black/20 px-5 py-12 text-center text-muted-foreground">
+                                            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                                                <Gauge className="size-7 opacity-50" />
+                                            </div>
+                                            <p className="text-sm font-semibold text-foreground/80">Ready to evaluate</p>
+                                            <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+                                                Configure the user context on the left, then run the simulation to see the runtime decision.
+                                            </p>
+                                            <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono">
+                                                <span className="size-1.5 rounded-full bg-white/40" />
+                                                awaiting input
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div data-eval-result className="space-y-4">
+                                            <div
+                                                className={`relative overflow-hidden p-4 rounded-2xl border flex items-center gap-3.5 ${evalResult.enabled
+                                                        ? "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400"
+                                                        : "bg-muted/50 border-border text-muted-foreground"
+                                                    }`}
+                                            >
+                                                {evalResult.enabled ? (
+                                                    <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
+                                                        <CheckCircle2 className="size-7 text-green-500" />
+                                                    </span>
+                                                ) : (
+                                                    <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.05]">
+                                                        <XCircle className="size-7 text-muted-foreground" />
+                                                    </span>
+                                                )}
+                                                <div>
+                                                    <p className="text-xl font-extrabold tracking-tight">
+                                                        {evalResult.enabled ? "ENABLED" : "DISABLED"}
+                                                    </p>
+                                                    <p className="text-xs font-medium opacity-90">
+                                                        Flag state for {evalUserId}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2.5 text-xs sm:text-sm">
+                                                <div className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.035]">
+                                                    <span className="text-muted-foreground font-medium">Decision reason</span>
+                                                    <Badge
+                                                        variant={REASON_LABELS[evalResult.reason]?.variant || "secondary"}
+                                                        className="font-mono text-xs font-semibold"
+                                                    >
+                                                        {REASON_LABELS[evalResult.reason]?.label || evalResult.reason}
+                                                    </Badge>
+                                                </div>
+
+                                                <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3 text-xs leading-relaxed text-muted-foreground">
+                                                    {REASON_LABELS[evalResult.reason]?.desc || "Evaluated by engine."}
+                                                </div>
+
+                                                {evalLatency !== null && (
+                                                    <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.018] p-2.5 text-xs text-muted-foreground">
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Clock className="size-3.5" />
+                                                            Roundtrip Latency:
+                                                        </span>
+                                                        <span className="font-mono font-bold text-foreground">
+                                                            {evalLatency} ms
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
-
-                                    <Button
-                                        type="submit"
-                                        disabled={evaluating || !evalUserId.trim()}
-                                        className="w-full gap-2 text-sm font-semibold h-10"
-                                    >
-                                        <Play className="size-4" />
-                                        <span>{evaluating ? "Evaluating..." : "Run Evaluation"}</span>
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
-
-                        {/* Evaluation Result Output */}
-                        <Card className="md:col-span-5 flex flex-col justify-between shadow-xs">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-bold">Evaluation Output</CardTitle>
-                                <CardDescription className="text-xs sm:text-sm">
-                                    Live verdict returned by FlagForge backend engine.
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="flex-1 flex flex-col justify-center">
-                                {!evalResult ? (
-                                    <div className="py-12 text-center text-muted-foreground space-y-2">
-                                        <Gauge className="size-10 mx-auto opacity-40" />
-                                        <p className="text-xs sm:text-sm">Click "Run Evaluation" to test this flag.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4 animate-in zoom-in-95 duration-150">
-                                        <div
-                                            className={`p-4 rounded-xl border flex items-center gap-3.5 ${
-                                                evalResult.enabled
-                                                    ? "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400"
-                                                    : "bg-muted/50 border-border text-muted-foreground"
-                                            }`}
-                                        >
-                                            {evalResult.enabled ? (
-                                                <CheckCircle2 className="size-9 text-green-600 shrink-0" />
-                                            ) : (
-                                                <XCircle className="size-9 text-muted-foreground shrink-0" />
-                                            )}
-                                            <div>
-                                                <p className="text-xl font-extrabold tracking-tight">
-                                                    {evalResult.enabled ? "ENABLED" : "DISABLED"}
-                                                </p>
-                                                <p className="text-xs font-medium opacity-90">
-                                                    Flag state for {evalUserId}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2.5 text-xs sm:text-sm">
-                                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/60">
-                                                <span className="text-muted-foreground font-medium">Evaluation Reason:</span>
-                                                <Badge
-                                                    variant={REASON_LABELS[evalResult.reason]?.variant || "secondary"}
-                                                    className="font-mono text-xs font-semibold"
-                                                >
-                                                    {REASON_LABELS[evalResult.reason]?.label || evalResult.reason}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="p-3 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground text-xs leading-relaxed">
-                                                {REASON_LABELS[evalResult.reason]?.desc || "Evaluated by engine."}
-                                            </div>
-
-                                            {evalLatency !== null && (
-                                                <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 text-muted-foreground text-xs">
-                                                    <span className="flex items-center gap-1.5">
-                                                        <Clock className="size-3.5" />
-                                                        Roundtrip Latency:
-                                                    </span>
-                                                    <span className="font-mono font-bold text-foreground">
-                                                        {evalLatency} ms
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>

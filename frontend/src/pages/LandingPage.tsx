@@ -15,11 +15,13 @@ import {
     Sparkles,
     Terminal,
     Zap,
+    Menu,
+    X,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+// import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import KineticGrid from "@/components/ui/kinetic-grid";
 import AnimatedButton from "@/components/ui/animated-button"
 import { LiquidMetalButton } from "@/components/ui/liquid-metal"
@@ -48,6 +50,7 @@ export function LandingPage() {
     const currentUser = getCurrentUser();
     const [copiedCode, setCopiedCode] = useState(false);
     const [activeTab, setActiveTab] = useState<"overview" | "flags" | "evaluation">("overview");
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const footerTextContainerRef = useRef<HTMLDivElement>(null);
     const reflectionRef = useRef<HTMLSpanElement>(null);
@@ -69,6 +72,17 @@ export function LandingPage() {
     const heroTitleContainerRef = useRef<HTMLDivElement>(null);
     const heroSpecularRef = useRef<HTMLHeadingElement>(null);
     const heroPosRef = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        window.addEventListener("resize", handleResize, { passive: true });
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     useEffect(() => {
         const locomotiveScroll = new LocomotiveScroll({
@@ -1026,7 +1040,7 @@ if (result.enabled) {
             <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-5">
                 <div
                     ref={navShellRef}
-                    className="group/nav relative mx-auto flex h-[60px] w-full max-w-7xl items-center rounded-2xl border border-white/[0.10] bg-black/65 px-2 shadow-[0_12px_50px_rgba(0,0,0,0.28)] backdrop-blur-2xl transition-[border-color,box-shadow,background-color] duration-500 hover:border-white/[0.16]"
+                    className="group/nav relative mx-auto flex h-[56px] w-full max-w-7xl items-center rounded-2xl border sm:h-[60px] border-white/[0.10] bg-black/65 px-2 shadow-[0_12px_50px_rgba(0,0,0,0.28)] backdrop-blur-2xl transition-[border-color,box-shadow,background-color] duration-500 hover:border-white/[0.16]"
                     style={{
                         ["--nav-progress" as string]: 0,
                     }}
@@ -1039,25 +1053,18 @@ if (result.enabled) {
                         />
                     </div>
 
-                    {/* Brand */}
+                    {/* Brand — official FlagForge logo */}
                     <Link
                         to="/"
-                        className="group/brand relative flex shrink-0 items-center gap-2.5 rounded-xl px-2.5 py-1.5 outline-none"
+                        aria-label="FlagForge home"
+                        className="group/brand relative flex h-11 w-[178px] shrink-0 items-center overflow-hidden rounded-xl px-1 outline-none sm:h-12 sm:w-[198px]"
                     >
-                        <span className="pointer-events-none absolute -inset-1 rounded-xl bg-white/[0.04] opacity-0 blur-md transition-opacity duration-500 group-hover/brand:opacity-100" />
-                        <div className="relative flex size-9 items-center justify-center overflow-hidden rounded-xl border border-white/[0.14] bg-white text-black shadow-[0_0_25px_rgba(255,255,255,0.08)] transition-all duration-500 group-hover/brand:rotate-[-4deg] group-hover/brand:scale-105">
-                            <Radio className="relative z-10 size-[18px] transition-transform duration-500 group-hover/brand:scale-110" />
-                            <span className="absolute inset-0 translate-y-full bg-gradient-to-t from-transparent via-black/10 to-transparent transition-transform duration-700 group-hover/brand:translate-y-[-100%]" />
-                        </div>
-
-                        <div className="relative hidden text-left sm:flex sm:flex-col">
-                            <span className="text-[15px] font-bold leading-none tracking-[-0.03em] text-white">
-                                FlagForge
-                            </span>
-                            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/35">
-                                Feature Platform
-                            </span>
-                        </div>
+                        <span className="pointer-events-none absolute -inset-2 rounded-2xl bg-white/[0.045] opacity-0 blur-xl transition-opacity duration-500 group-hover/brand:opacity-100" />
+                        <img
+                            src="/flagforge-logo.png"
+                            alt="FlagForge — Feature Platform"
+                            className="relative z-10 h-full w-full object-contain object-left transition-all duration-500 group-hover/brand:scale-[1.025] group-hover/brand:brightness-110 group-hover/brand:drop-shadow-[0_0_14px_rgba(255,255,255,0.12)]"
+                        />
                     </Link>
 
                     {/* Navigation */}
@@ -1097,7 +1104,7 @@ if (result.enabled) {
 
                     {/* Right controls */}
                     <div className="ml-auto flex items-center gap-1.5">
-                        <div className="hidden items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-2.5 py-2 sm:flex">
+                        {/* <div className="hidden items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-2.5 py-2 sm:flex">
                             <span className="relative flex size-1.5">
                                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-white/30" />
                                 <span className="relative inline-flex size-1.5 rounded-full bg-white/70" />
@@ -1109,11 +1116,11 @@ if (result.enabled) {
 
                         <div className="rounded-xl border border-transparent transition-all duration-300 hover:border-white/[0.08] hover:bg-white/[0.04]">
                             <ThemeToggle />
-                        </div>
+                        </div> */}
 
                         {currentUser ? (
                             <Link to="/dashboard" className="group/cta">
-                                <Button className="h-10 gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_10px_30px_rgba(255,255,255,0.12)]">
+                                <Button className="h-9 gap-1.5 rounded-xl bg-white px-3 text-[11px] font-semibold sm:h-10 sm:gap-2 sm:px-4 sm:text-xs text-black shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_10px_30px_rgba(255,255,255,0.12)]">
                                     <span className="hidden sm:inline">Go to Dashboard</span>
                                     <ArrowRight className="size-4 transition-transform duration-300 group-hover/cta:translate-x-0.5" />
                                 </Button>
@@ -1136,13 +1143,68 @@ if (result.enabled) {
                             </Link>
                         )}
                     </div>
+
+                    {/* Mobile navigation trigger */}
+                    <button
+                        type="button"
+                        aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
+                        aria-expanded={mobileMenuOpen}
+                        onClick={() => setMobileMenuOpen((open) => !open)}
+                        className="ml-1 flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-white/70 transition-all hover:bg-white/[0.06] hover:text-white md:hidden"
+                    >
+                        {mobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+                    </button>
+                </div>
+
+                {/* Mobile navigation panel */}
+                <div
+                    className={`absolute left-0 right-0 top-[64px] rounded-2xl border border-white/[0.10] bg-black/90 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 md:hidden ${mobileMenuOpen
+                            ? "pointer-events-auto translate-y-0 opacity-100"
+                            : "pointer-events-none -translate-y-2 opacity-0"
+                        }`}
+                >
+                    <nav className="flex flex-col gap-1">
+                        {[
+                            { label: "Features", href: "#features" },
+                            { label: "How It Works", href: "#how-it-works" },
+                            { label: "SDK & API", href: "#developer" },
+                        ].map((item) => (
+                            <a
+                                key={item.label}
+                                href={item.href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+
+                        <Link
+                            to="/docs"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                        >
+                            Docs
+                        </Link>
+
+                        <a
+                            href="https://github.com/The-ZGod/FlagForge"
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                        >
+                            <GithubIcon className="size-4" />
+                            GitHub
+                        </a>
+                    </nav>
                 </div>
             </header>
 
             {/* Hero Section with Kinetic Grid Background */}
             <KineticGrid globalColor="default">
-                <section className="relative pt-16 pb-20 md:pt-24 md:pb-28">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 text-center space-y-8">
+                <section className="relative px-0 pt-12 pb-16 sm:pt-16 sm:pb-20 md:pt-24 md:pb-28">
+                    <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 space-y-7 sm:space-y-8">
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/50 px-3.5 py-1 text-xs font-medium text-foreground shadow-2xs">
                             <Sparkles className="size-3.5 text-primary" />
@@ -1160,12 +1222,12 @@ if (result.enabled) {
                             onTouchStart={handleHeroTouchStart}
                             onTouchMove={handleHeroTouchMove}
                             onTouchEnd={handleHeroMouseLeave}
-                            className="relative max-w-4xl mx-auto space-y-4 cursor-default select-none"
+                            className="relative mx-auto max-w-4xl space-y-4 cursor-default select-none"
                         >
                             <div className="relative inline-block">
                                 {/* Base White Liquid Chrome Metallic Text */}
                                 <h1
-                                    className="font-space text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-[-0.04em] leading-[1.08] text-center"
+                                    className="font-space text-[2.15rem] leading-[1.02] font-extrabold tracking-[-0.045em] text-center sm:text-5xl sm:leading-[1.06] md:text-6xl lg:text-7xl"
                                     style={{
                                         backgroundImage: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 25%, #CBD5E1 55%, #94A3B8 80%, #FFFFFF 100%)",
                                         WebkitBackgroundClip: "text",
@@ -1181,7 +1243,7 @@ if (result.enabled) {
                                 <h1
                                     ref={heroSpecularRef}
                                     aria-hidden="true"
-                                    className="font-space absolute inset-0 pointer-events-none text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-[-0.04em] leading-[1.08] text-center opacity-0 select-none"
+                                    className="font-space absolute inset-0 pointer-events-none text-[2.15rem] leading-[1.02] font-extrabold tracking-[-0.045em] text-center opacity-0 select-none sm:text-5xl sm:leading-[1.06] md:text-6xl lg:text-7xl"
                                     style={{
                                         WebkitTextStroke: "1.5px rgba(255, 255, 255, 0.82)",
                                         color: "transparent",
@@ -1201,14 +1263,14 @@ if (result.enabled) {
                                 </h1>
                             </div>
 
-                            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed pt-2">
+                            <p className="mx-auto max-w-2xl px-1 pt-2 text-sm leading-6 text-muted-foreground sm:text-lg sm:leading-relaxed md:text-xl">
                                 Control releases, target users by attributes, and gradually roll out features deterministically without shipping new code or restarting servers.
                             </p>
                         </div>
 
                         {/* Hero Actions */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                            <Link to={currentUser ? "/dashboard" : "/login"}>
+                        <div className="flex w-full flex-col items-stretch justify-center gap-3 pt-2 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
+                            <Link className="w-full sm:w-auto" to={currentUser ? "/dashboard" : "/login"}>
                                 <LiquidMetalButton
                                     size="md"
                                     icon={<ArrowRight className="size-4" />}
@@ -1224,7 +1286,7 @@ if (result.enabled) {
                                 </LiquidMetalButton>
                             </Link>
 
-                            <Link to="/docs">
+                            <Link className="w-full sm:w-auto" to="/docs">
                                 {/* <Button size="lg" variant="outline" className="h-12 px-6 text-sm sm:text-base font-medium gap-2 w-full sm:w-auto rounded-full">
                                 <Code2 className="size-4.5" />
                                 <span>Read Documentation</span>
@@ -1239,15 +1301,15 @@ if (result.enabled) {
 
                         {/* Interactive Product Showcase Mockup */}
                         <div className="pt-8 max-w-5xl mx-auto">
-                            <div className="rounded-2xl border border-border/80 bg-card p-2 sm:p-4 shadow-2xl">
+                            <div className="w-full overflow-hidden rounded-2xl border border-border/80 bg-card p-2 shadow-2xl sm:p-4">
                                 {/* Showcase Sub-tabs */}
-                                <div className="flex items-center justify-between border-b border-border/60 pb-3 px-2">
-                                    <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-lg">
+                                <div className="flex min-w-0 items-center justify-between gap-2 border-b border-border/60 px-1 pb-3 sm:px-2">
+                                    <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto rounded-lg bg-muted/50 p-1 scrollbar-none">
                                         <button
                                             type="button"
                                             onClick={() => setActiveTab("overview")}
                                             onMouseEnter={() => setActiveTab("overview")}
-                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${activeTab === "overview"
+                                            className={`shrink-0 whitespace-nowrap px-2.5 py-1.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer sm:px-3 sm:py-1 sm:text-xs ${activeTab === "overview"
                                                 ? "bg-card text-foreground shadow-2xs"
                                                 : "text-muted-foreground hover:text-foreground"
                                                 }`}
@@ -1258,7 +1320,7 @@ if (result.enabled) {
                                             type="button"
                                             onClick={() => setActiveTab("flags")}
                                             onMouseEnter={() => setActiveTab("flags")}
-                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${activeTab === "flags"
+                                            className={`shrink-0 whitespace-nowrap px-2.5 py-1.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer sm:px-3 sm:py-1 sm:text-xs ${activeTab === "flags"
                                                 ? "bg-card text-foreground shadow-2xs"
                                                 : "text-muted-foreground hover:text-foreground"
                                                 }`}
@@ -1269,7 +1331,7 @@ if (result.enabled) {
                                             type="button"
                                             onClick={() => setActiveTab("evaluation")}
                                             onMouseEnter={() => setActiveTab("evaluation")}
-                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${activeTab === "evaluation"
+                                            className={`shrink-0 whitespace-nowrap px-2.5 py-1.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer sm:px-3 sm:py-1 sm:text-xs ${activeTab === "evaluation"
                                                 ? "bg-card text-foreground shadow-2xs"
                                                 : "text-muted-foreground hover:text-foreground"
                                                 }`}
@@ -1285,12 +1347,12 @@ if (result.enabled) {
                                 </div>
 
                                 {/* Showcase Screen Content */}
-                                <div ref={showcaseContentRef} className="p-4 sm:p-6 text-left">
+                                <div ref={showcaseContentRef} className="p-3 text-left sm:p-6">
                                     {activeTab === "overview" && (
                                         <div className="showcase-panel space-y-4">
                                             <div
                                                 ref={statsCardsRef}
-                                                className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                                                className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-4"
                                             >
                                                 {[
                                                     { label: "Projects", value: "4", suffix: "Active" },
@@ -1392,13 +1454,13 @@ if (result.enabled) {
                                                 ))}
                                             </div>
 
-                                            <div className="showcase-panel-item group relative overflow-hidden rounded-xl border border-border/60 p-4 bg-muted/10 space-y-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20">
+                                            <div className="showcase-panel-item group relative overflow-hidden rounded-xl border border-border/60 bg-muted/10 p-3 space-y-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 sm:p-4">
                                                 <div className="pointer-events-none absolute -left-1/3 top-0 h-full w-1/4 -skew-x-12 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent opacity-0 transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-semibold text-sm text-foreground">new_checkout_experience</span>
+                                                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                    <span className="break-all font-semibold text-sm text-foreground">new_checkout_experience</span>
                                                     <Badge variant="default" className="text-[10px]">ENABLED (50% Rollout)</Badge>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                                     <span>Targeting:</span>
                                                     <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-foreground">country EQUALS US</code>
                                                     <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-foreground">plan NOT_EQUALS free</code>
@@ -1478,7 +1540,7 @@ if (result.enabled) {
             {/* Core Features Section */}
             <section
                 id="features"
-                className="relative overflow-hidden border-y border-border/70 bg-black py-24 sm:py-28"
+                className="relative overflow-hidden border-y border-border/70 bg-black py-16 sm:py-24 lg:py-28"
             >
                 {/* Ambient technical grid */}
                 <div
@@ -1499,7 +1561,7 @@ if (result.enabled) {
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
                     {/* Section heading */}
-                    <div className="mb-14 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="mb-10 flex flex-col gap-6 sm:mb-14 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-3xl">
                             <div className="mb-5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                                 <span className="flex items-center gap-1.5">
@@ -1510,7 +1572,7 @@ if (result.enabled) {
                                 <span className="font-mono text-white/25">06 MODULES</span>
                             </div>
 
-                            <h2 className="max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
+                            <h2 className="max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
                                 Built for modern
                                 <span className="block text-white/35">
                                     engineering teams.
@@ -1683,13 +1745,13 @@ if (result.enabled) {
             </section>
 
             {/* How It Works Flow */}
-            <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-28">
+            <section id="how-it-works" className="relative overflow-hidden py-16 sm:py-24 lg:py-28">
                 <div
                     ref={howItWorksRef}
                     className="mx-auto max-w-7xl px-4 sm:px-6"
                 >
                     {/* Section heading */}
-                    <div className="mx-auto mb-16 max-w-3xl text-center">
+                    <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-16">
                         <div className="mb-4 inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">
                             <span className="h-px w-7 bg-white/20" />
                             <span>Deployment Flow</span>
@@ -1713,7 +1775,7 @@ if (result.enabled) {
                             <div className="how-step-connector h-full w-full origin-left bg-gradient-to-r from-white/5 via-white/35 to-white/5" />
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                             {[
                                 {
                                     step: "01",
@@ -1814,7 +1876,7 @@ if (result.enabled) {
             <section
                 id="developer"
                 ref={developerSectionRef}
-                className="relative overflow-hidden border-t border-white/[0.07] bg-black py-24 sm:py-28"
+                className="relative overflow-hidden border-t border-white/[0.07] bg-black py-16 sm:py-24 lg:py-28"
             >
                 {/* Technical grid */}
                 <div
@@ -1830,7 +1892,7 @@ if (result.enabled) {
                 <div className="pointer-events-none absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.025] blur-3xl" />
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-                    <div className="mb-10 flex items-end justify-between gap-6 sm:mb-14">
+                    <div className="mb-8 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
                         <div>
                             <div className="mb-4 inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
                                 <Code2 className="size-3.5 text-white/70" />
@@ -1849,9 +1911,9 @@ if (result.enabled) {
                         </div>
                     </div>
 
-                    <div className="grid items-stretch gap-5 lg:grid-cols-[0.82fr_1.18fr]">
+                    <div className="grid min-w-0 items-stretch gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:gap-5">
                         {/* Copy panel */}
-                        <div className="developer-copy group relative overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.018] p-6 backdrop-blur-xl sm:p-8">
+                        <div className="developer-copy group relative min-w-0 overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.018] p-5 backdrop-blur-xl sm:p-8">
                             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                             <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-white/[0.035] blur-3xl transition-opacity duration-500 group-hover:opacity-80" />
 
@@ -1910,7 +1972,7 @@ if (result.enabled) {
                         </div>
 
                         {/* Code panel */}
-                        <div className="developer-code-panel group relative overflow-hidden rounded-2xl border border-white/[0.10] bg-[#050505] shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
+                        <div className="developer-code-panel group relative min-w-0 overflow-hidden rounded-2xl border border-white/[0.10] bg-[#050505] shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
                             <div className="developer-code-glow pointer-events-none absolute -inset-20 opacity-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.10),transparent_55%)]" />
 
                             <div className="relative flex items-center justify-between border-b border-white/[0.08] px-4 py-3">
@@ -1946,7 +2008,7 @@ if (result.enabled) {
 
                             <div className="relative overflow-hidden">
                                 <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 border-r border-white/[0.04] bg-white/[0.012]" />
-                                <pre className="overflow-x-auto p-5 pl-16 text-[11px] leading-6 text-white/70 sm:p-6 sm:pl-16 sm:text-xs">
+                                <pre className="max-w-full overflow-x-auto p-4 pl-12 text-[10px] leading-5 text-white/70 sm:p-6 sm:pl-16 sm:text-xs sm:leading-6">
                                     <code>{sdkSnippet}</code>
                                 </pre>
                             </div>
@@ -1961,7 +2023,7 @@ if (result.enabled) {
             </section>
 
             {/* Architecture Section */}
-            <section className="relative overflow-hidden border-t border-white/[0.07] py-24 sm:py-28">
+            <section className="relative overflow-hidden border-t border-white/[0.07] py-16 sm:py-24 lg:py-28">
                 {/* Subtle technical grid + ambient light */}
                 <div className="pointer-events-none absolute inset-0 opacity-50">
                     <div
@@ -1984,7 +2046,7 @@ if (result.enabled) {
                     className="relative mx-auto max-w-7xl px-4 sm:px-6"
                 >
                     {/* Section heading */}
-                    <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="mb-8 flex flex-col gap-4 sm:mb-12 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
                         <div className="max-w-2xl">
                             <div className="mb-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
                                 <span className="h-px w-8 bg-white/20" />
@@ -2107,42 +2169,6 @@ if (result.enabled) {
                 </div>
             </section>
 
-            {/* Final CTA */}
-            {/* <section className="py-20 border-t border-border/80 text-center">
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 space-y-6">
-                    <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-                        Build safer releases with FlagForge.
-                    </h2>
-                    <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
-                        Get started in minutes with our developer console and TypeScript SDK.
-                    </p>
-
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                        <Link to={currentUser ? "/dashboard" : "/login"}>
-                            <Button size="lg" className="h-11 px-6 text-sm sm:text-base font-semibold gap-2 shadow-md">
-                                <span>{currentUser ? "Open Dashboard" : "Get Started Free"}</span>
-                                <ArrowRight className="size-4" />
-                            </Button>
-                        </Link>
-                        <Link to="/docs">
-                            <Button size="lg" variant="outline" className="h-11 px-6 text-sm sm:text-base font-medium">
-                                Read Docs
-                            </Button>
-                        </Link>
-                        <a
-                            href="https://github.com"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <Button size="lg" variant="ghost" className="h-11 px-6 text-sm sm:text-base font-medium gap-2">
-                                <GithubIcon className="size-4.5" />
-                                <span>View GitHub</span>
-                            </Button>
-                        </a>
-                    </div>
-                </div>
-            </section> */}
-
             {/* Interactive Sheryians-style Reflective Typography Footer Banner */}
             <section
                 ref={footerTextContainerRef}
@@ -2152,7 +2178,7 @@ if (result.enabled) {
                 onTouchStart={handleTouchMove}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleMouseLeave}
-                className="relative w-full border-t border-border/60 bg-black select-none cursor-default py-8 sm:py-12 md:py-16 flex items-center justify-center overflow-x-clip"
+                className="hidden min-[1200px]:flex relative w-full border-t border-border/60 bg-black select-none cursor-default py-8 sm:py-12 md:py-16 items-center justify-center overflow-x-clip"
             >
                 <div className="w-full flex items-center justify-center px-2 sm:px-4">
                     <div className="relative inline-flex items-center justify-center">
@@ -2160,8 +2186,9 @@ if (result.enabled) {
                         <span
                             className="font-space font-bold tracking-[-0.06em] select-none pointer-events-none text-center whitespace-nowrap px-4 py-4"
                             style={{
-                                fontSize: "clamp(3.5rem, 13.5vw, 15.5rem)",
-                                lineHeight: 1.15,
+                                fontSize: "clamp(3rem, 17.5vw, 19.5rem)",
+                                // fontSize: "clamp(3.5rem, 13.5vw, 15.5rem)",
+                                lineHeight: 1,
                                 color: "transparent",
                                 WebkitTextStroke: "1.2px rgba(255, 255, 255, 0.22)",
                             }}
@@ -2175,7 +2202,8 @@ if (result.enabled) {
                             aria-hidden="true"
                             className="absolute inset-0 flex items-center justify-center font-space font-bold tracking-[-0.06em] select-none pointer-events-none text-center whitespace-nowrap px-4 py-4 opacity-0"
                             style={{
-                                fontSize: "clamp(3.5rem, 13.5vw, 15.5rem)",
+                                fontSize: "clamp(3rem, 17.5vw, 19.5rem)",
+                                // fontSize: "clamp(3.5rem, 13.5vw, 15.5rem)",
                                 lineHeight: 1.15,
                                 color: "transparent",
                                 WebkitBackgroundClip: "text",
@@ -2198,14 +2226,14 @@ if (result.enabled) {
 
             {/* Footer */}
             <footer className="border-t border-border/80 py-8 bg-muted/10 text-xs text-muted-foreground">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                        <Radio className="size-4 text-primary" />
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                        {/* <Radio className="size-4 text-primary" /> */}
                         <span className="font-semibold text-foreground">FlagForge</span>
                         <span>© {new Date().getFullYear()} FlagForge Platform. All rights reserved.</span>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
                         <Link to="/docs" className="hover:text-foreground transition-colors">
                             Documentation
                         </Link>
@@ -2213,12 +2241,14 @@ if (result.enabled) {
                             Console Sign In
                         </Link>
                         <a
-                            href="https://github.com/The-ZGod"
+                            href="https://github.com/The-ZGod/FlagForge"
                             target="_blank"
                             rel="noreferrer"
                             className="hover:text-foreground transition-colors"
                         >
-                            GitHub
+                            <span className="relative z-10 flex items-center gap-1">
+                                <GithubIcon className="size-3.5 transition-transform duration-300 group-hover/link:rotate-[-8deg] group-hover/link:scale-110" />
+                                GitHub</span>
                         </a>
                     </div>
                 </div>

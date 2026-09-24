@@ -117,7 +117,7 @@ export function Sidebar() {
     return (
         <div className="border-b bg-background">
             {/* Main navigation */}
-            <div className="mx-auto flex min-h-16 max-w-[1600px] items-center gap-6 px-6">
+            <div className="mx-auto flex min-h-16 max-w-screen-xl items-center gap-6 px-4 sm:px-6">
                 {/* Brand */}
                 <button
                     type="button"
@@ -254,7 +254,7 @@ export function Sidebar() {
             {/* Environment context */}
             {projectId && (
                 <div className="border-t bg-muted/20">
-                    <div className="mx-auto flex min-h-11 max-w-[1600px] items-center gap-3 overflow-x-auto px-6">
+                    <div className="mx-auto flex min-h-11 max-w-screen-xl items-center gap-3 overflow-x-auto px-4 sm:px-6">
                         <span className="shrink-0 text-xs font-medium text-muted-foreground">
                             Environment
                         </span>

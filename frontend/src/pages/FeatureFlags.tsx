@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
 import {
     Dialog,
     DialogClose,
@@ -194,258 +194,378 @@ export function FeatureFlags() {
     }, [flags, searchQuery, statusFilter]);
 
     return (
-        <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-6xl mx-auto animate-in fade-in duration-150">
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                            Feature Flags
-                        </h1>
-                        {environment && (
-                            <Badge variant="outline" className="text-xs font-mono font-normal">
-                                {project ? `${project.name} / ${environment.name}` : environment.name}
-                            </Badge>
-                        )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Manage feature flags, percentage rollouts, and targeting rules for this environment.
-                    </p>
-                </div>
+        <div className="relative min-h-full overflow-hidden bg-background">
+            {/* Ambient page treatment */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.055),transparent_62%)]" />
+            <div className="pointer-events-none absolute right-[-12rem] top-24 h-72 w-72 rounded-full bg-white/[0.025] blur-3xl" />
 
-                <div className="flex items-center gap-2.5 self-start sm:self-auto">
-                    {projectId && environmentId && (
-                        <Link
-                            to={`/projects/${projectId}/environments/${environmentId}/evaluate`}
-                        >
-                            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm font-medium">
-                                <Sparkles className="size-4 text-primary" />
-                                <span>Evaluate</span>
-                            </Button>
-                        </Link>
-                    )}
+            <div className="relative mx-auto w-full max-w-7xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+                {/* Premium header */}
+                <div className="mb-7 rounded-2xl border border-white/[0.08] bg-white/[0.018] p-5 shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:p-6">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="min-w-0">
+                            <div className="mb-3 flex flex-wrap items-center gap-2">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.035] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                    <span className="size-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                                    Feature Management
+                                </span>
+                                {environment && (
+                                    <Badge
+                                        variant="outline"
+                                        className="rounded-full border-white/[0.1] bg-black/20 px-2.5 py-1 text-[10px] font-mono font-medium text-foreground"
+                                    >
+                                        {project ? `${project.name} / ${environment.name}` : environment.name}
+                                    </Badge>
+                                )}
+                            </div>
 
-                    <Button
-                        size="sm"
-                        onClick={() => setShowCreateModal(true)}
-                        className="gap-1.5 text-xs sm:text-sm font-semibold shadow-xs"
-                    >
-                        <Plus className="size-4" />
-                        <span>Create Flag</span>
-                    </Button>
-                </div>
-            </div>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
+                                    Feature Flags
+                                </h1>
+                                <span className="hidden h-7 w-px bg-white/[0.09] sm:block" />
+                                <span className="font-mono text-xs text-muted-foreground">
+                                    {environment?.name || "environment"}
+                                </span>
+                            </div>
 
-            {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
-                    <span>{error}</span>
-                    <button
-                        type="button"
-                        onClick={() => setError("")}
-                        className="text-xs underline cursor-pointer"
-                    >
-                        Dismiss
-                    </button>
-                </div>
-            )}
-
-            {/* Filter and Search Bar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search flags by name or key..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9.5 text-sm h-9.5 bg-card"
-                    />
-                </div>
-
-                {/* Status Filter Buttons */}
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60 shrink-0">
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter("ALL")}
-                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-                            statusFilter === "ALL"
-                                ? "bg-card text-foreground shadow-2xs font-semibold"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
-                    >
-                        All ({flags.length})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter("ENABLED")}
-                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-                            statusFilter === "ENABLED"
-                                ? "bg-card text-foreground shadow-2xs font-semibold"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
-                    >
-                        Enabled ({flags.filter((f) => f.enabled).length})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter("DISABLED")}
-                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-                            statusFilter === "DISABLED"
-                                ? "bg-card text-foreground shadow-2xs font-semibold"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
-                    >
-                        Disabled ({flags.filter((f) => !f.enabled).length})
-                    </button>
-                </div>
-            </div>
-
-            {/* Feature Flag Inventory */}
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                </div>
-            ) : flags.length === 0 ? (
-                <Card className="border-dashed border-border/80 bg-muted/20">
-                    <CardContent className="py-14 text-center space-y-3">
-                        <Radio className="size-12 text-muted-foreground mx-auto opacity-40" />
-                        <div>
-                            <h3 className="text-lg font-semibold text-foreground">No Feature Flags Yet</h3>
-                            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                                Create your first feature flag to start dynamically controlling features and running percentage rollouts.
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                                Control releases, percentage rollouts, and targeting rules without coupling deployment to release.
                             </p>
                         </div>
-                        <Button
-                            size="sm"
-                            onClick={() => setShowCreateModal(true)}
-                            className="gap-2 text-xs sm:text-sm font-semibold mt-2"
-                        >
-                            <Plus className="size-4" />
-                            <span>Create First Flag</span>
-                        </Button>
-                    </CardContent>
-                </Card>
-            ) : filteredFlags.length === 0 ? (
-                <Card className="bg-muted/10">
-                    <CardContent className="py-10 text-center text-muted-foreground text-sm">
-                        No flags match your search query or filter.
-                    </CardContent>
-                </Card>
-            ) : (
-                <div className="space-y-3">
-                    {filteredFlags.map((flag) => (
-                        <FeatureFlagCard
-                            key={flag.id}
-                            flag={flag}
-                            rules={rules[flag.id] ?? []}
-                            projectId={projectId!}
-                            environmentId={environmentId!}
-                            onToggle={handleToggleFlag}
-                            onDelete={handleDeleteFlag}
-                        />
-                    ))}
+
+                        <div className="flex shrink-0 items-center gap-2">
+                            {projectId && environmentId && (
+                                <Link to={`/projects/${projectId}/environments/${environmentId}/evaluate`}>
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 gap-2 rounded-xl border-white/[0.1] bg-white/[0.025] px-4 text-sm font-medium shadow-none transition-all hover:-translate-y-0.5 hover:border-white/[0.18] hover:bg-white/[0.06]"
+                                    >
+                                        <Sparkles className="size-4" />
+                                        Evaluate
+                                    </Button>
+                                </Link>
+                            )}
+
+                            <Button
+                                onClick={() => setShowCreateModal(true)}
+                                className="h-10 gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-black shadow-[0_8px_30px_rgba(255,255,255,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_36px_rgba(255,255,255,0.18)]"
+                            >
+                                <Plus className="size-4" />
+                                Create Flag
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Overview metrics */}
+                    <div className="mt-6 grid grid-cols-3 overflow-hidden rounded-xl border border-white/[0.07] bg-black/20">
+                        {[
+                            { label: "Total flags", value: flags.length },
+                            { label: "Enabled", value: flags.filter((f) => f.enabled).length },
+                            { label: "Disabled", value: flags.filter((f) => !f.enabled).length },
+                        ].map((metric, index) => (
+                            <div
+                                key={metric.label}
+                                className={`relative px-4 py-3.5 sm:px-5 ${index !== 0 ? "border-l border-white/[0.07]" : ""}`}
+                            >
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                    {metric.label}
+                                </p>
+                                <p className="mt-1 font-mono text-xl font-semibold tracking-tight text-foreground">
+                                    {metric.value.toString().padStart(2, "0")}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            )}
 
-            {/* Create Feature Flag Modal */}
-            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-                <DialogClose onClose={() => setShowCreateModal(false)} />
-                <DialogHeader>
-                    <DialogTitle>Create Feature Flag</DialogTitle>
-                    <DialogDescription>
-                        Feature flags allow you to decouple deployment from release in {environment?.name || "this environment"}.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleCreateFlag} className="space-y-4">
-                    {createError && (
-                        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
-                            {createError}
-                        </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="create-flag-name" className="text-sm font-medium">Flag Name</Label>
-                        <Input
-                            id="create-flag-name"
-                            placeholder="e.g. New Checkout Experience"
-                            value={flagName}
-                            onChange={(e) => {
-                                setFlagName(e.target.value);
-                                if (
-                                    !flagKey ||
-                                    flagKey ===
-                                        flagName
-                                            .toLowerCase()
-                                            .replace(/[^a-z0-9]+/g, "_")
-                                ) {
-                                    setFlagKey(
-                                        e.target.value
-                                            .toLowerCase()
-                                            .replace(/[^a-z0-9]+/g, "_")
-                                    );
-                                }
-                            }}
-                            required
-                            autoFocus
-                            className="text-sm"
-                        />
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="create-flag-key" className="text-sm font-medium">Flag Key (used in code)</Label>
-                        <Input
-                            id="create-flag-key"
-                            placeholder="e.g. new_checkout_experience"
-                            value={flagKey}
-                            onChange={(e) =>
-                                setFlagKey(
-                                    e.target.value
-                                        .toLowerCase()
-                                        .replace(/[^a-z0-9_]+/g, "_")
-                                )
-                            }
-                            className="font-mono text-xs sm:text-sm"
-                            required
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="create-flag-rollout" className="text-sm font-medium">Initial Rollout</Label>
-                            <span className="font-mono text-sm font-bold text-foreground">{flagRollout}%</span>
-                        </div>
-                        <input
-                            id="create-flag-rollout"
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={flagRollout}
-                            onChange={(e) => setFlagRollout(Number(e.target.value))}
-                            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <Button
+                {error && (
+                    <div className="mb-5 flex items-center justify-between rounded-xl border border-destructive/25 bg-destructive/[0.08] px-4 py-3 text-sm text-destructive shadow-sm">
+                        <span>{error}</span>
+                        <button
                             type="button"
-                            variant="outline"
-                            onClick={() => setShowCreateModal(false)}
-                            className="text-xs sm:text-sm"
+                            onClick={() => setError("")}
+                            className="cursor-pointer text-xs underline underline-offset-4"
                         >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={creating || !flagName.trim() || !flagKey.trim()}
-                            className="text-xs sm:text-sm font-semibold"
+                            Dismiss
+                        </button>
+                    </div>
+                )}
+
+                {/* Search + filters */}
+                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="group relative w-full sm:max-w-xl">
+                        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-foreground" />
+                        <Input
+                            placeholder="Search by flag name or key..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="h-11 rounded-xl border-white/[0.08] bg-white/[0.025] pl-10 text-sm shadow-none transition-all placeholder:text-muted-foreground/70 focus-visible:border-white/[0.2] focus-visible:bg-white/[0.04] focus-visible:ring-1 focus-visible:ring-white/[0.08]"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-1 rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+                        {[
+                            { key: "ALL" as const, label: "All", count: flags.length },
+                            { key: "ENABLED" as const, label: "Enabled", count: flags.filter((f) => f.enabled).length },
+                            { key: "DISABLED" as const, label: "Disabled", count: flags.filter((f) => !f.enabled).length },
+                        ].map((filter) => (
+                            <button
+                                key={filter.key}
+                                type="button"
+                                onClick={() => setStatusFilter(filter.key)}
+                                className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-medium transition-all ${statusFilter === filter.key
+                                        ? "bg-white text-black shadow-[0_3px_14px_rgba(0,0,0,0.3)]"
+                                        : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
+                                    }`}
+                            >
+                                {filter.label}
+                                <span className={`ml-1.5 font-mono ${statusFilter === filter.key ? "text-black/55" : "text-muted-foreground/60"}`}>
+                                    {filter.count}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Feature Flag Inventory */}
+                <div className="mb-3 flex items-center justify-between px-1">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            Flag inventory
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground/70">
+                            {filteredFlags.length} {filteredFlags.length === 1 ? "flag" : "flags"} visible
+                        </p>
+                    </div>
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={() => setSearchQuery("")}
+                            className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground"
                         >
-                            {creating ? "Creating..." : "Create Feature Flag"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </Dialog>
+                            Clear search
+                        </button>
+                    )}
+                </div>
+
+                {loading ? (
+                    <div className="space-y-3">
+                        <div className="h-24 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.025]" />
+                        <div className="h-24 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.025]" />
+                        <div className="h-24 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.025]" />
+                    </div>
+                ) : flags.length === 0 ? (
+                    <Card className="overflow-hidden rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.018] shadow-none">
+                        <CardContent className="relative py-16 text-center">
+                            <div className="pointer-events-none absolute inset-x-1/3 top-0 h-32 bg-white/[0.035] blur-3xl" />
+                            <div className="relative mx-auto flex size-14 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.04] shadow-inner">
+                                <Radio className="size-6 text-muted-foreground" />
+                            </div>
+                            <h3 className="relative mt-5 text-lg font-semibold text-foreground">No feature flags yet</h3>
+                            <p className="relative mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                                Create your first flag to control a release, test an experiment, or safely roll out a feature.
+                            </p>
+                            <Button
+                                size="sm"
+                                onClick={() => setShowCreateModal(true)}
+                                className="relative mt-5 h-9 gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-white"
+                            >
+                                <Plus className="size-4" />
+                                Create First Flag
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : filteredFlags.length === 0 ? (
+                    <Card className="rounded-2xl border border-white/[0.08] bg-white/[0.018] shadow-none">
+                        <CardContent className="py-12 text-center">
+                            <p className="text-sm font-medium text-foreground">No matching flags</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Try another search term or switch the status filter.
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="space-y-3">
+                        {filteredFlags.map((flag) => (
+                            <div
+                                key={flag.id}
+                                className="group relative rounded-2xl transition-transform duration-300 hover:-translate-y-0.5"
+                            >
+                                <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-white/[0.12] via-transparent to-white/[0.06] opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-100" />
+                                <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.018] shadow-[0_10px_40px_rgba(0,0,0,0.12)] transition-all duration-300 group-hover:border-white/[0.13] group-hover:bg-white/[0.026] group-hover:shadow-[0_16px_50px_rgba(0,0,0,0.2)]">
+                                    <FeatureFlagCard
+                                        flag={flag}
+                                        rules={rules[flag.id] ?? []}
+                                        projectId={projectId!}
+                                        environmentId={environmentId!}
+                                        onToggle={handleToggleFlag}
+                                        onDelete={handleDeleteFlag}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Create Feature Flag Modal */}
+                <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+                    <DialogClose onClose={() => setShowCreateModal(false)} />
+
+                    <DialogHeader className="mb-6">
+                        <div className="mb-4 flex items-center gap-2">
+                            <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                <span className="size-1.5 rounded-full bg-white shadow-[0_0_9px_rgba(255,255,255,0.8)]" />
+                                Runtime control
+                            </span>
+                        </div>
+                        <DialogTitle className="text-2xl font-semibold tracking-[-0.03em]">
+                            Create Feature Flag
+                        </DialogTitle>
+                        <DialogDescription className="mt-2 max-w-lg text-sm leading-6">
+                            Define a release control for{" "}
+                            <span className="font-medium text-foreground">{environment?.name || "this environment"}</span>.
+                            You can change rollout and targeting rules after creation.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleCreateFlag} className="space-y-5">
+                        {createError && (
+                            <div className="rounded-xl border border-destructive/25 bg-destructive/[0.08] p-3 text-xs text-destructive">
+                                {createError}
+                            </div>
+                        )}
+
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="create-flag-name" className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                                    Flag name
+                                </Label>
+                                <Input
+                                    id="create-flag-name"
+                                    placeholder="New Checkout Experience"
+                                    value={flagName}
+                                    onChange={(e) => {
+                                        setFlagName(e.target.value);
+                                        if (
+                                            !flagKey ||
+                                            flagKey ===
+                                            flagName
+                                                .toLowerCase()
+                                                .replace(/[^a-z0-9]+/g, "_")
+                                        ) {
+                                            setFlagKey(
+                                                e.target.value
+                                                    .toLowerCase()
+                                                    .replace(/[^a-z0-9]+/g, "_")
+                                            );
+                                        }
+                                    }}
+                                    required
+                                    autoFocus
+                                    className="h-11 rounded-xl border-white/[0.08] bg-white/[0.025] text-sm shadow-none focus-visible:border-white/[0.18] focus-visible:ring-1 focus-visible:ring-white/[0.08]"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-flag-key" className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                                    Flag key
+                                </Label>
+                                <Input
+                                    id="create-flag-key"
+                                    placeholder="new_checkout_experience"
+                                    value={flagKey}
+                                    onChange={(e) =>
+                                        setFlagKey(
+                                            e.target.value
+                                                .toLowerCase()
+                                                .replace(/[^a-z0-9_]+/g, "_")
+                                        )
+                                    }
+                                    className="h-11 rounded-xl border-white/[0.08] bg-white/[0.025] font-mono text-xs sm:text-sm shadow-none focus-visible:border-white/[0.18] focus-visible:ring-1 focus-visible:ring-white/[0.08]"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label htmlFor="create-flag-rollout" className="text-sm font-medium">
+                                        Initial rollout
+                                    </Label>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Percentage of eligible traffic that receives the flag.
+                                    </p>
+                                </div>
+                                <span className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 font-mono text-sm font-semibold text-foreground">
+                                    {flagRollout}%
+                                </span>
+                            </div>
+
+                            <input
+                                id="create-flag-rollout"
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={flagRollout}
+                                onChange={(e) => setFlagRollout(Number(e.target.value))}
+                                className="mt-5 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/[0.1] accent-white"
+                            />
+
+                            <div className="mt-2 flex justify-between text-[10px] font-mono text-muted-foreground/60">
+                                <span>0%</span>
+                                <span>50%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setFlagEnabled((current) => !current)}
+                            className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.03]"
+                        >
+                            <div>
+                                <p className="text-sm font-medium text-foreground">Enable immediately</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    {flagEnabled ? "The flag will be active as soon as it is created." : "Create it safely disabled and activate it later."}
+                                </p>
+                            </div>
+                            <span
+                                className={`relative h-6 w-11 rounded-full border transition-colors ${flagEnabled
+                                        ? "border-white bg-white"
+                                        : "border-white/[0.12] bg-white/[0.06]"
+                                    }`}
+                            >
+                                <span
+                                    className={`absolute top-1 size-4 rounded-full transition-all ${flagEnabled
+                                            ? "left-6 bg-black"
+                                            : "left-1 bg-white/60"
+                                        }`}
+                                />
+                            </span>
+                        </button>
+
+                        <DialogFooter className="border-t border-white/[0.07] pt-5">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowCreateModal(false)}
+                                className="h-10 rounded-xl border-white/[0.08] bg-white/[0.025] text-sm"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={creating || !flagName.trim() || !flagKey.trim()}
+                                className="h-10 rounded-xl bg-white px-5 text-sm font-semibold text-black shadow-[0_8px_28px_rgba(255,255,255,0.1)] hover:bg-white"
+                            >
+                                {creating ? "Creating..." : "Create Feature Flag"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Dialog>
+            </div>
         </div>
     );
 }

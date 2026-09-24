@@ -12,6 +12,7 @@ import {
     Menu,
     Moon,
     Plus,
+    // Radio,
     Settings as SettingsIcon,
     Sliders,
     Sparkles,
@@ -21,7 +22,7 @@ import {
 
 import { getCurrentUser, logout } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+// import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { createProject, getProjects, type Project } from "@/lib/projects";
 import {
     createEnvironment,
@@ -74,6 +75,18 @@ export function TopNavigation() {
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLElement>(null);
     const currentUser = getCurrentUser();
+
+    // Keep the mobile drawer closed after switching back to desktop.
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        window.addEventListener("resize", handleResize, { passive: true });
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     // Close dropdowns on outside click
     useEffect(() => {
@@ -302,14 +315,17 @@ export function TopNavigation() {
             {/* Main navigation shell */}
             <div
                 data-nav-shell
-                className="mx-auto flex h-[68px] max-w-[1800px] items-center border-x border-white/[0.04] bg-[#080808]/70 px-4 sm:px-6 lg:px-8 transition-[background-color,border-color,box-shadow] duration-300"
+                className="mx-auto flex h-14 max-w-screen-2xl items-center border-x border-white/[0.04] bg-[#080808]/70 px-2.5 sm:h-16 sm:px-4 md:px-6 lg:px-8 transition-[background-color,border-color,box-shadow] duration-300"
             >
-                <div className="flex w-full items-center gap-4">
-                    {/* Premium FlagForge Brand */}
+                <div className="flex min-w-0 w-full items-center gap-2 sm:gap-3 lg:gap-4">
+                    {/* Premium FlagForge Brand
+                        Desktop: full wordmark
+                        Tablet/mobile: icon only
+                    */}
                     <Link
                         to="/"
                         aria-label="FlagForge home"
-                        className="group relative flex h-[54px] w-[190px] shrink-0 items-center overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] px-2.5 shadow-[inset_0_1px_rgba(255,255,255,0.06),0_8px_30px_rgba(0,0,0,0.18)] transition-all duration-500 hover:-translate-y-px hover:border-white/[0.14] hover:bg-white/[0.035] hover:shadow-[inset_0_1px_rgba(255,255,255,0.09),0_12px_36px_rgba(0,0,0,0.28)]"
+                        className="group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.018] shadow-[inset_0_1px_rgba(255,255,255,0.06),0_8px_30px_rgba(0,0,0,0.18)] transition-all duration-500 hover:-translate-y-px hover:border-white/[0.14] hover:bg-white/[0.035] hover:shadow-[inset_0_1px_rgba(255,255,255,0.09),0_12px_36px_rgba(0,0,0,0.28)] sm:h-14 sm:w-48 sm:justify-start sm:rounded-2xl sm:px-2.5"
                     >
                         {/* Soft ambient glow */}
                         <span
@@ -317,12 +333,15 @@ export function TopNavigation() {
                             className="pointer-events-none absolute -left-8 top-1/2 size-20 -translate-y-1/2 rounded-full bg-white/[0.045] blur-2xl transition-all duration-700 group-hover:bg-white/[0.09] group-hover:scale-125"
                         />
 
-                        {/* Logo */}
-                        <img
-                            src="/flagforge-logo.png"
-                            alt="FlagForge Feature Platform"
-                            className="relative z-10 h-[50px] w-full object-contain object-left transition-all duration-500 group-hover:scale-[1.025] group-hover:brightness-[1.08] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.14)]"
-                        />
+                        {/* Full wordmark on larger screens.
+                            The same asset is cropped to its icon on small screens. */}
+                        <div className="relative z-10 h-8 w-8 shrink-0 overflow-hidden sm:h-12 sm:w-full">
+                            <img
+                                src="/flagforge-logo.png"
+                                alt="FlagForge Feature Platform"
+                                className="absolute left-0 top-1/2 h-8 w-auto max-w-none -translate-y-1/2 object-contain object-left transition-all duration-500 group-hover:brightness-[1.08] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.14)] sm:static sm:h-12 sm:w-full sm:translate-y-0 sm:object-left"
+                            />
+                        </div>
 
                         {/* Premium reflection sweep */}
                         <span
@@ -333,12 +352,12 @@ export function TopNavigation() {
                         {/* Tiny brand status light */}
                         <span
                             aria-hidden="true"
-                            className="absolute bottom-2 right-2 z-20 size-1.5 rounded-full bg-white/25 shadow-[0_0_8px_rgba(255,255,255,0.18)] transition-all duration-500 group-hover:bg-white/70 group-hover:shadow-[0_0_10px_rgba(255,255,255,0.45)]"
+                            className="absolute bottom-1.5 right-1.5 z-20 size-1.5 rounded-full bg-white/25 shadow-[0_0_8px_rgba(255,255,255,0.18)] transition-all duration-500 group-hover:bg-white/70 group-hover:shadow-[0_0_10px_rgba(255,255,255,0.45)] sm:bottom-2 sm:right-2"
                         />
                     </Link>
 
                     {/* Project selector */}
-                    <div className="relative shrink-0" ref={projectDropdownRef}>
+                    <div className="relative hidden shrink-0 lg:block" ref={projectDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
@@ -346,7 +365,7 @@ export function TopNavigation() {
                                 ? "Loading"
                                 : activeProject?.name || "Select project"
                                 }. Click to change project.`}
-                            className="group flex h-11 min-w-[205px] items-center gap-2.5 rounded-xl border border-white/[0.09] bg-white/[0.035] px-2.5 text-left shadow-[inset_0_1px_rgba(255,255,255,0.04)] transition-all duration-300 hover:-translate-y-px hover:border-white/[0.16] hover:bg-white/[0.06] focus:outline-none focus:ring-1 focus:ring-white/20"
+                            className="group flex h-10 min-w-48 items-center gap-2.5 rounded-xl border border-white/[0.09] bg-white/[0.035] px-2.5 text-left shadow-[inset_0_1px_rgba(255,255,255,0.04)] transition-all duration-300 hover:-translate-y-px hover:border-white/[0.16] hover:bg-white/[0.06] focus:outline-none focus:ring-1 focus:ring-white/20 sm:min-w-52"
                         >
                             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.09] bg-white/[0.05] text-white/60 transition-colors duration-300 group-hover:border-white/15 group-hover:text-white">
                                 <FolderKanban className="size-3.5" />
@@ -502,26 +521,7 @@ export function TopNavigation() {
                     </nav>
 
                     {/* Right controls */}
-                    <div className="ml-auto flex shrink-0 items-center gap-1.5">
-                        <div className="hidden items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1 sm:flex">
-                            <div>
-                                <ThemeToggle />
-                            </div>
-
-                            <NavLink
-                                to="/settings"
-
-                                className={({ isActive }) =>
-                                    `flex size-9 items-center justify-center rounded-xl border transition-all duration-300 ${isActive
-                                        ? "border-white/[0.14] bg-white/[0.09] text-white"
-                                        : "border-transparent text-white/40 hover:border-white/[0.08] hover:bg-white/[0.06] hover:text-white"
-                                    }`
-                                }
-                                title="Settings"
-                            >
-                                <SettingsIcon className="size-4" />
-                            </NavLink>
-                        </div>
+                    <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
 
                         {/* User profile */}
                         <div className="relative" ref={userDropdownRef}>
@@ -529,9 +529,9 @@ export function TopNavigation() {
                                 type="button"
 
                                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                                className="group flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-2.5 transition-all duration-300 hover:border-white/[0.15] hover:bg-white/[0.065] focus:outline-none"
+                                className="group flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] px-2 sm:h-10 sm:gap-2 sm:px-2.5 transition-all duration-300 hover:border-white/[0.15] hover:bg-white/[0.065] focus:outline-none"
                             >
-                                <div className="flex size-6.5 items-center justify-center rounded-lg bg-white text-[10px] font-bold text-black">
+                                <div className="flex size-6 items-center justify-center rounded-lg sm:size-6.5 bg-white text-[10px] font-bold text-black">
                                     {currentUser?.email
                                         ? currentUser.email.charAt(0).toUpperCase()
                                         : "U"}
@@ -559,24 +559,6 @@ export function TopNavigation() {
                                     </div>
 
                                     <div className="border-t border-white/[0.08] py-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => toggleTheme()}
-                                            className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                {theme === "dark" ? (
-                                                    <Sun className="size-4" />
-                                                ) : (
-                                                    <Moon className="size-4" />
-                                                )}
-                                                Theme
-                                            </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/30">
-                                                {theme}
-                                            </span>
-                                        </button>
-
                                         <Link
                                             to="/settings"
                                             onClick={() => setUserDropdownOpen(false)}
@@ -608,7 +590,7 @@ export function TopNavigation() {
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-white/60 transition-all hover:border-white/[0.15] hover:bg-white/[0.065] hover:text-white lg:hidden"
+                            className="flex size-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-white/60 sm:size-10 transition-all hover:border-white/[0.15] hover:bg-white/[0.065] hover:text-white lg:hidden"
                             aria-label="Toggle navigation menu"
                         >
                             {mobileMenuOpen ? (
@@ -623,7 +605,7 @@ export function TopNavigation() {
 
             {/* Mobile drawer */}
             {mobileMenuOpen && (
-                <div className="absolute left-3 right-3 top-[calc(100%+8px)] z-[60] overflow-hidden rounded-2xl border border-white/[0.10] bg-[#0a0a0a]/95 p-2 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:hidden">
+                <div className="absolute left-2 right-2 top-[calc(100%+8px)] z-[60] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl sm:left-3 sm:right-3 border border-white/[0.10] bg-[#0a0a0a]/95 p-2 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:hidden">
                     {[
                         {
                             to: "/dashboard",
@@ -674,7 +656,7 @@ export function TopNavigation() {
                                 key={item.label}
                                 to={item.to}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-colors ${item.active
+                                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${item.active
                                     ? "bg-white text-black"
                                     : "text-white/55 hover:bg-white/[0.06] hover:text-white"
                                     }`}
@@ -710,11 +692,113 @@ export function TopNavigation() {
                 </div>
             )}
 
+            {/* Compact project bar for tablet / mobile.
+                Keeps project switching outside the main navbar and outside
+                the hamburger drawer on smaller screens. */}
+            <div className="border-t border-white/[0.06] border-b border-white/[0.06] bg-[#080808]/95 backdrop-blur-xl lg:hidden">
+                <div className="mx-auto flex min-h-11 max-w-screen-2xl items-center gap-2 px-2.5 sm:px-4 md:px-6">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/50">
+                            <FolderKanban className="size-3.5" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <div className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/25">
+                                Project
+                            </div>
+                            <div className="truncate text-[12px] font-semibold text-white/85">
+                                {loadingProjects
+                                    ? "Loading..."
+                                    : activeProject?.name || "Select project"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative shrink-0" ref={projectDropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
+                            aria-label="Change project"
+                            className="flex h-8 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-2.5 text-[11px] font-semibold text-white/65 transition-colors hover:border-white/[0.16] hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-1 focus:ring-white/20"
+                        >
+                            Change
+                            <ChevronDown
+                                className={`size-3 text-white/35 transition-transform duration-300 ${projectDropdownOpen ? "rotate-180 text-white" : ""
+                                    }`}
+                            />
+                        </button>
+
+                        {projectDropdownOpen && (
+                            <div className="absolute right-0 top-[calc(100%+8px)] z-[70] w-[min(18rem,calc(100vw-1.25rem))] overflow-hidden rounded-2xl border border-white/[0.11] bg-[#0b0b0b]/95 p-1.5 shadow-[0_25px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+                                <div className="flex items-center justify-between px-3 py-2">
+                                    <div>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/35">
+                                            Project
+                                        </span>
+                                        <p className="mt-0.5 text-[11px] text-white/25">
+                                            Select the workspace you want to manage
+                                        </p>
+                                    </div>
+                                    <Badge
+                                        variant="secondary"
+                                        className="h-5 border border-white/[0.08] bg-white/[0.05] px-1.5 text-[10px] text-white/55"
+                                    >
+                                        {projects.length}
+                                    </Badge>
+                                </div>
+
+                                <div className="my-1 max-h-56 space-y-0.5 overflow-y-auto">
+                                    {projects.length === 0 ? (
+                                        <div className="px-3 py-4 text-center text-xs text-white/35">
+                                            No projects found.
+                                        </div>
+                                    ) : (
+                                        projects.map((project) => (
+                                            <button
+                                                key={project.id}
+                                                type="button"
+                                                onClick={() => handleSelectProject(project)}
+                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${project.id === effectiveProjectId
+                                                        ? "bg-white text-black"
+                                                        : "text-white/65 hover:bg-white/[0.07] hover:text-white"
+                                                    }`}
+                                            >
+                                                <div className="flex min-w-0 items-center gap-2.5">
+                                                    <FolderKanban className="size-3.5 shrink-0 opacity-60" />
+                                                    <span className="truncate">{project.name}</span>
+                                                </div>
+                                                {project.id === effectiveProjectId && (
+                                                    <Check className="size-3.5 shrink-0" />
+                                                )}
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="border-t border-white/[0.08] pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setProjectDropdownOpen(false);
+                                            setCreateProjectModalOpen(true);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
+                                    >
+                                        <Plus className="size-4" />
+                                        Create new project
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Environment context bar */}
             {effectiveProjectId && (
                 <div className="border-t border-white/[0.06] bg-[#070707]/90 backdrop-blur-xl">
-                    <div className="mx-auto flex min-h-10 max-w-[1800px] items-center justify-between gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex shrink-0 items-center gap-2.5">
+                    <div className="mx-auto flex min-h-10 max-w-screen-2xl items-center justify-between gap-3 overflow-x-auto px-2.5 sm:gap-4 sm:px-4 md:px-6 lg:px-8">
+                        <div className="flex min-w-max shrink-0 items-center gap-2">
                             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
                                 <Layers className="size-3" />
                                 Environment
@@ -731,14 +815,14 @@ export function TopNavigation() {
                                         size="xs"
                                         variant="outline"
                                         onClick={() => setCreateEnvModalOpen(true)}
-                                        className="h-6 border-white/[0.12] bg-white/[0.04] px-2 text-[10px] text-white"
+                                        className="h-6 shrink-0 border-white/[0.12] bg-white/[0.04] px-2 text-[10px] text-white"
                                     >
                                         <Plus className="mr-1 size-3" />
                                         Create
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-1.5 py-1">
+                                <div className="flex max-w-[calc(100vw-120px)] items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
                                     {environments.map((env) => {
                                         const isSelected = env.id === effectiveEnvId;
                                         return (
@@ -746,7 +830,7 @@ export function TopNavigation() {
                                                 key={env.id}
                                                 type="button"
                                                 onClick={() => handleSelectEnvironment(env)}
-                                                className={`group flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${isSelected
+                                                className={`group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${isSelected
                                                     ? "bg-white text-black shadow-[0_4px_18px_rgba(255,255,255,0.08)]"
                                                     : "border border-white/[0.07] bg-white/[0.025] text-white/40 hover:border-white/[0.13] hover:bg-white/[0.06] hover:text-white"
                                                     }`}
@@ -821,7 +905,7 @@ export function TopNavigation() {
                         />
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                         <Button
                             type="button"
                             variant="outline"

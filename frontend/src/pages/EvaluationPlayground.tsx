@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import gsap from "gsap";
 import {
     Activity,
     ArrowLeft,
     CheckCircle2,
     Clock,
     Gauge,
+    ChevronDown,
     Play,
     Plus,
     Sparkles,
@@ -69,6 +71,159 @@ const REASON_MAP: Record<string, { label: string; desc: string; variant: "defaul
         variant: "destructive",
     },
 };
+
+type ThemeSelectOption = {
+    value: string;
+    label: string;
+};
+
+function ThemeSelect({
+    id,
+    value,
+    onChange,
+    options,
+    disabled = false,
+    mono = false,
+}: {
+    id: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: ThemeSelectOption[];
+    disabled?: boolean;
+    mono?: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const selected = options.find((option) => option.value === value);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [open]);
+
+    // Small, fast motion keeps the custom dropdown feeling responsive without
+    // turning the control into a distracting animation.
+    useEffect(() => {
+        if (!open || !menuRef.current) return;
+        const menu = menuRef.current;
+
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion) return;
+
+        const ctx = gsap.context(() => {
+            gsap.fromTo(
+                menu,
+                { opacity: 0, y: -6, scale: 0.985, filter: "blur(4px)" },
+                { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.22, ease: "power3.out" }
+            );
+
+            gsap.fromTo(
+                menu.querySelectorAll(".theme-select-option"),
+                { opacity: 0, y: -3 },
+                { opacity: 1, y: 0, duration: 0.18, stagger: 0.025, ease: "power2.out", delay: 0.035 }
+            );
+        }, menuRef);
+
+        return () => ctx.revert();
+    }, [open]);
+
+    return (
+        <div ref={rootRef} className="relative" id={id}>
+            <button
+                type="button"
+                disabled={disabled}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                onClick={() => setOpen((prev) => !prev)}
+                className={[
+                    "group flex h-11 w-full items-center justify-between gap-3 rounded-xl",
+                    "border border-white/[0.08] bg-black/35 px-3.5 text-left text-sm text-foreground",
+                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] outline-none",
+                    "transition-all duration-200",
+                    "hover:-translate-y-px hover:border-white/[0.15] hover:bg-white/[0.035] hover:shadow-[0_8px_24px_rgba(0,0,0,0.18)]",
+                    "active:translate-y-0 active:scale-[0.995]",
+                    "focus-visible:border-white/[0.22] focus-visible:ring-2 focus-visible:ring-white/[0.08]",
+                    open ? "border-white/[0.18] bg-white/[0.045] shadow-[0_10px_30px_rgba(0,0,0,0.22)]" : "",
+                    disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+                ].join(" ")}
+            >
+                <span className={`min-w-0 truncate ${mono ? "font-mono" : ""}`}>
+                    {selected?.label ?? "Select an option"}
+                </span>
+
+                <ChevronDown
+                    className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180 text-white" : ""
+                        }`}
+                />
+            </button>
+
+            {open && !disabled && (
+                <div
+                    ref={menuRef}
+                    role="listbox"
+                    aria-labelledby={id}
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] overflow-hidden rounded-xl border border-white/[0.11] bg-[#0b0b0b]/[0.98] p-1.5 shadow-[0_24px_70px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.025)] backdrop-blur-2xl"
+                >
+                    <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+
+                    {options.map((option) => {
+                        const isSelected = option.value === value;
+
+                        return (
+                            <button
+                                key={option.value}
+                                type="button"
+                                role="option"
+                                aria-selected={isSelected}
+                                onClick={() => {
+                                    onChange(option.value);
+                                    setOpen(false);
+                                }}
+                                className={[
+                                    "theme-select-option relative flex min-h-10 w-full items-center justify-between rounded-lg px-3 text-left text-sm",
+                                    "transition-all duration-150 hover:translate-x-0.5",
+                                    isSelected
+                                        ? "bg-white text-black shadow-[0_4px_18px_rgba(255,255,255,0.08)]"
+                                        : "text-muted-foreground hover:bg-white/[0.07] hover:text-white",
+                                ].join(" ")}
+                            >
+                                <span className={`truncate ${mono ? "font-mono" : ""}`}>
+                                    {option.label}
+                                </span>
+
+                                {isSelected && (
+                                    <span className="ml-3 size-1.5 shrink-0 rounded-full bg-black animate-pulse" />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
 
 export function EvaluationPlayground() {
     const params = useParams();
@@ -207,7 +362,7 @@ export function EvaluationPlayground() {
             setResult(evaluation);
 
             // Refresh metrics in background
-            getEvaluationMetrics(selectedEnvId).then(setMetrics).catch(() => {});
+            getEvaluationMetrics(selectedEnvId).then(setMetrics).catch(() => { });
         } catch (err) {
             setError(
                 err instanceof Error ? err.message : "Evaluation request failed"
@@ -234,404 +389,587 @@ export function EvaluationPlayground() {
     const currentProject = projects.find((p) => p.id === selectedProjectId);
     const currentEnvironment = environments.find((e) => e.id === selectedEnvId);
 
+
+    const pageRef = useRef<HTMLDivElement>(null);
+    const formCardRef = useRef<HTMLDivElement>(null);
+    const resultCardRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!pageRef.current) return;
+
+        const ctx = gsap.context(() => {
+            const intro = gsap.timeline({
+                defaults: { ease: "power3.out" },
+            });
+
+            intro
+                .fromTo(
+                    ".eval-back",
+                    { y: 10, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.45 }
+                )
+                .fromTo(
+                    ".eval-hero",
+                    { y: 22, opacity: 0, filter: "blur(8px)" },
+                    { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.7 },
+                    "-=0.25"
+                )
+                .fromTo(
+                    ".eval-main-card",
+                    { y: 28, opacity: 0, scale: 0.985 },
+                    { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.1 },
+                    "-=0.35"
+                )
+                .fromTo(
+                    ".eval-metric",
+                    { y: 18, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.5, stagger: 0.08 },
+                    "-=0.35"
+                )
+                .fromTo(
+                    ".eval-breakdown",
+                    { y: 20, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.55 },
+                    "-=0.25"
+                );
+
+            gsap.to(".hero-orb", {
+                y: -12,
+                x: 8,
+                duration: 4.5,
+                ease: "sine.inOut",
+                repeat: -1,
+                yoyo: true,
+            });
+
+            gsap.to(".hero-sweep", {
+                xPercent: 120,
+                duration: 5,
+                ease: "none",
+                repeat: -1,
+                repeatDelay: 3,
+            });
+        }, pageRef);
+
+        return () => ctx.revert();
+    }, []);
+
+    useEffect(() => {
+        if (!result || !resultCardRef.current) return;
+
+        const ctx = gsap.context(() => {
+            gsap.fromTo(
+                resultCardRef.current,
+                { scale: 0.97, opacity: 0.5, y: 12 },
+                {
+                    scale: 1,
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.55,
+                    ease: "back.out(1.5)",
+                }
+            );
+
+            gsap.fromTo(
+                ".decision-icon",
+                { scale: 0.5, rotate: -12, opacity: 0 },
+                {
+                    scale: 1,
+                    rotate: 0,
+                    opacity: 1,
+                    duration: 0.65,
+                    ease: "back.out(2)",
+                }
+            );
+        }, resultCardRef);
+
+        return () => ctx.revert();
+    }, [result]);
+
     return (
-        <div className="p-4 sm:p-6 md:p-8 space-y-8 max-w-6xl mx-auto animate-in fade-in duration-150">
-            {/* Header */}
-            <div>
+        <div
+            ref={pageRef}
+            className="relative min-h-full overflow-hidden bg-[#050505] text-foreground"
+        >
+            {/* Ambient cinematic background */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <div className="hero-orb absolute -left-32 top-24 size-[30rem] rounded-full bg-white/[0.025] blur-[110px]" />
+                <div className="absolute right-[-14rem] top-[22rem] size-[34rem] rounded-full bg-white/[0.018] blur-[130px]" />
+                <div className="absolute inset-x-0 top-0 h-[32rem] bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.07),transparent_62%)]" />
+                <div className="hero-sweep absolute -left-1/3 top-0 h-px w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent opacity-60" />
+                <div className="absolute inset-x-0 top-0 h-px bg-white/[0.09]" />
+            </div>
+
+            <div className="relative mx-auto w-full max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+                {/* Navigation */}
                 {selectedProjectId && selectedEnvId && (
                     <Link
                         to={`/projects/${selectedProjectId}/environments/${selectedEnvId}`}
-                        className="mb-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group"
+                        className="eval-back group mb-5 inline-flex items-center gap-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        <ArrowLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                        <span>Back to feature flags</span>
+                        <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.025] transition-transform duration-300 group-hover:-translate-x-1">
+                            <ArrowLeft className="size-3.5" />
+                        </span>
+                        Back to feature flags
                     </Link>
                 )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1">
-                    <div>
-                        <div className="flex items-center gap-2.5">
-                            <Sparkles className="size-6 text-primary" />
-                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                                Evaluation Playground
-                            </h1>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Simulate real-time feature flag evaluations with deterministic hash bucketing and targeting constraints.
-                        </p>
-                    </div>
+                {/* Hero */}
+                <section className="eval-hero relative mb-7 overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-7">
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.035),transparent_35%,transparent_70%,rgba(255,255,255,0.02))]" />
+                    <div className="pointer-events-none absolute right-8 top-[-7rem] size-56 rounded-full border border-white/[0.05] bg-white/[0.025] blur-2xl" />
 
-                    {currentEnvironment && (
-                        <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs font-mono font-medium">
-                                {currentProject?.name} / {currentEnvironment?.name}
-                            </Badge>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
-                    <span>{error}</span>
-                    <button
-                        type="button"
-                        onClick={() => setError("")}
-                        className="text-xs underline cursor-pointer"
-                    >
-                        Dismiss
-                    </button>
-                </div>
-            )}
-
-            {/* Interactive Evaluation Form + Output */}
-            <div className="grid gap-6 md:grid-cols-12">
-                {/* Form */}
-                <Card className="md:col-span-7 shadow-xs">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-bold">
-                            Evaluation Parameters
-                        </CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                            Query the live FlagForge evaluation engine with custom user attributes.
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent>
-                        <form onSubmit={handleEvaluate} className="space-y-4">
-                            {/* Project & Environment Context Picker */}
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="eval-proj-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Project
-                                    </Label>
-                                    <select
-                                        id="eval-proj-select"
-                                        value={selectedProjectId}
-                                        onChange={(e) => handleProjectChange(e.target.value)}
-                                        className="w-full h-9 rounded-lg border border-input bg-card px-3 text-xs sm:text-sm shadow-xs focus:outline-hidden focus:ring-2 focus:ring-ring cursor-pointer"
+                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-black/20 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                    <span className="size-1.5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+                                    Runtime evaluation
+                                </span>
+                                {currentEnvironment && (
+                                    <Badge
+                                        variant="outline"
+                                        className="rounded-full border-white/[0.1] bg-black/25 px-3 py-1.5 font-mono text-[10px] text-foreground"
                                     >
-                                        {projects.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="eval-env-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Environment
-                                    </Label>
-                                    <select
-                                        id="eval-env-select"
-                                        value={selectedEnvId}
-                                        onChange={(e) => setSelectedEnvId(e.target.value)}
-                                        disabled={environments.length === 0}
-                                        className="w-full h-9 rounded-lg border border-input bg-card px-3 text-xs sm:text-sm shadow-xs focus:outline-hidden focus:ring-2 focus:ring-ring cursor-pointer disabled:opacity-50"
-                                    >
-                                        {environments.length === 0 ? (
-                                            <option value="">No environments found</option>
-                                        ) : (
-                                            environments.map((e) => (
-                                                <option key={e.id} value={e.id}>
-                                                    {e.name} ({e.key})
-                                                </option>
-                                            ))
-                                        )}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Flag Selection */}
-                            <div className="space-y-1.5 pt-1">
-                                <Label htmlFor="flag-key-select" className="text-sm font-medium">
-                                    Feature Flag Key
-                                </Label>
-                                {flags.length > 0 ? (
-                                    <select
-                                        id="flag-key-select"
-                                        value={flagKey}
-                                        onChange={(e) => setFlagKey(e.target.value)}
-                                        className="w-full h-10 rounded-lg border border-input bg-card px-3 text-sm font-mono shadow-xs focus:outline-hidden focus:ring-2 focus:ring-ring cursor-pointer"
-                                    >
-                                        {flags.map((f) => (
-                                            <option key={f.id} value={f.key}>
-                                                {f.name} ({f.key})
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <Input
-                                        id="flag-key-select"
-                                        value={flagKey}
-                                        onChange={(e) => setFlagKey(e.target.value)}
-                                        placeholder="e.g. new_checkout_experience"
-                                        className="font-mono text-sm"
-                                        required
-                                    />
+                                        {currentProject?.name} / {currentEnvironment.name}
+                                    </Badge>
                                 )}
                             </div>
 
-                            {/* User ID */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="playground-user-id" className="text-sm font-medium">
-                                    User Identifier (Deterministic Hash)
-                                </Label>
-                                <Input
-                                    id="playground-user-id"
-                                    value={userId}
-                                    onChange={(e) => setUserId(e.target.value)}
-                                    placeholder="e.g. user_84920, guest-session-12"
-                                    className="font-mono text-sm"
-                                    required
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    The evaluation engine computes a deterministic Murmur3 hash against this User ID.
-                                </p>
+                            <div className="flex items-center gap-3">
+                                <div className="flex size-11 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                                    <Sparkles className="size-5 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+                                        Evaluation Playground
+                                    </h1>
+                                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                        Test exactly how FlagForge decides whether a user receives a feature.
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* Dynamic Attributes */}
-                            <div className="space-y-2 pt-2 border-t border-border">
-                                <div className="flex items-center justify-between">
-                                    <Label className="text-sm font-medium">
-                                        User Attributes (Evaluation Context)
-                                    </Label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="xs"
-                                        onClick={addAttributeRow}
-                                        className="h-7 text-xs px-2.5 gap-1"
+                            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                                {[
+                                    ["01", "Choose", "Flag + environment"],
+                                    ["02", "Identify", "User + attributes"],
+                                    ["03", "Evaluate", "See the decision"],
+                                ].map(([number, title, desc]) => (
+                                    <div
+                                        key={number}
+                                        className="group rounded-xl border border-white/[0.07] bg-black/20 px-3.5 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.025] hover:shadow-[0_10px_30px_rgba(0,0,0,0.16)]"
                                     >
-                                        <Plus className="size-3.5" />
-                                        Add Attribute
-                                    </Button>
-                                </div>
-
-                                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                                    {attributes.map((attr, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <Input
-                                                placeholder="Key (e.g. country)"
-                                                value={attr.key}
-                                                onChange={(e) =>
-                                                    updateAttributeRow(index, e.target.value, attr.value)
-                                                }
-                                                className="font-mono text-xs sm:text-sm flex-1"
-                                            />
-                                            <Input
-                                                placeholder="Value (e.g. US)"
-                                                value={attr.value}
-                                                onChange={(e) =>
-                                                    updateAttributeRow(index, attr.key, e.target.value)
-                                                }
-                                                className="font-mono text-xs sm:text-sm flex-1"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                onClick={() => removeAttributeRow(index)}
-                                                className="text-muted-foreground hover:text-destructive"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-mono text-[10px] text-muted-foreground">{number}</span>
+                                            <span className="text-xs font-semibold text-foreground">{title}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                disabled={loading || !flagKey.trim() || !userId.trim() || !selectedEnvId}
-                                className="w-full gap-2 text-sm font-semibold h-10"
-                            >
-                                <Play className="size-4" />
-                                <span>{loading ? "Evaluating..." : "Evaluate Flag"}</span>
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
-
-                {/* Output Card */}
-                <Card className="md:col-span-5 flex flex-col justify-between shadow-xs">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-bold">Evaluation Decision</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                            Real-time decision computed for {userId}.
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="flex-1 flex flex-col justify-center">
-                        {!result ? (
-                            <div className="py-12 text-center text-muted-foreground space-y-2">
-                                <Gauge className="size-10 mx-auto opacity-40" />
-                                <p className="text-sm">Click "Evaluate Flag" to run a simulation.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 animate-in zoom-in-95 duration-150">
-                                <div
-                                    className={`p-4 rounded-xl border flex items-center gap-3.5 ${
-                                        result.enabled
-                                            ? "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400"
-                                            : "bg-muted/50 border-border text-muted-foreground"
-                                    }`}
-                                >
-                                    {result.enabled ? (
-                                        <CheckCircle2 className="size-9 text-green-600 shrink-0" />
-                                    ) : (
-                                        <XCircle className="size-9 text-muted-foreground shrink-0" />
-                                    )}
-                                    <div>
-                                        <p className="text-xl font-extrabold tracking-tight">
-                                            {result.enabled ? "ENABLED" : "DISABLED"}
-                                        </p>
-                                        <p className="text-xs font-medium opacity-90">
-                                            Flag: <code className="font-mono">{flagKey}</code>
-                                        </p>
+                                        <p className="mt-1 text-[11px] text-muted-foreground">{desc}</p>
                                     </div>
-                                </div>
-
-                                <div className="space-y-2.5 text-xs sm:text-sm">
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/60">
-                                        <span className="text-muted-foreground font-medium">Evaluation Reason:</span>
-                                        <Badge
-                                            variant={REASON_MAP[result.reason]?.variant || "secondary"}
-                                            className="font-mono text-xs font-semibold"
-                                        >
-                                            {REASON_MAP[result.reason]?.label || result.reason}
-                                        </Badge>
-                                    </div>
-
-                                    <div className="p-3 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground text-xs leading-relaxed">
-                                        {REASON_MAP[result.reason]?.desc || "Evaluated by engine."}
-                                    </div>
-
-                                    {latency !== null && (
-                                        <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 text-muted-foreground text-xs">
-                                            <span className="flex items-center gap-1.5">
-                                                <Clock className="size-3.5" />
-                                                Engine Latency:
-                                            </span>
-                                            <span className="font-mono font-bold text-foreground">
-                                                {latency} ms
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
+                                ))}
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Live Metrics Grid */}
-            <div className="space-y-4 pt-4 border-t border-border">
-                <div className="flex items-center gap-2">
-                    <Activity className="size-5 text-muted-foreground" />
-                    <h2 className="text-lg font-bold tracking-tight text-foreground">
-                        Environment Evaluation Metrics
-                    </h2>
-                </div>
-
-                {metricsLoading && !metrics ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-24 w-full" />
-                    </div>
-                ) : metrics ? (
-                    <div className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <Card className="shadow-2xs">
-                                <CardContent className="pt-5">
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Total Evaluations
-                                    </p>
-                                    <p className="mt-1 text-3xl font-extrabold font-mono text-foreground">
-                                        {metrics.totalEvaluations}
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-2xs">
-                                <CardContent className="pt-5">
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Enabled Results
-                                    </p>
-                                    <p className="mt-1 text-3xl font-extrabold font-mono text-green-600">
-                                        {metrics.enabledEvaluations}
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-2xs">
-                                <CardContent className="pt-5">
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Disabled Results
-                                    </p>
-                                    <p className="mt-1 text-3xl font-extrabold font-mono text-muted-foreground">
-                                        {metrics.disabledEvaluations}
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-2xs">
-                                <CardContent className="pt-5">
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Average Latency
-                                    </p>
-                                    <p className="mt-1 text-3xl font-extrabold font-mono text-foreground">
-                                        {metrics.averageLatencyMs} ms
-                                    </p>
-                                </CardContent>
-                            </Card>
                         </div>
+                    </div>
+                </section>
 
-                        {/* Reason Breakdown */}
-                        <Card className="shadow-xs">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-bold">
-                                    Evaluation Reason Breakdown
-                                </CardTitle>
-                                <CardDescription className="text-xs">
-                                    Cumulative count of evaluation outcomes recorded in this environment.
-                                </CardDescription>
+                {error && (
+                    <div className="mb-5 flex items-center justify-between rounded-2xl border border-destructive/25 bg-destructive/[0.08] px-4 py-3 text-sm text-destructive">
+                        <span>{error}</span>
+                        <button
+                            type="button"
+                            onClick={() => setError("")}
+                            className="cursor-pointer text-xs underline underline-offset-4"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
+
+                {/* Main workspace */}
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+                    {/* Configuration */}
+                    <div ref={formCardRef} className="eval-main-card">
+                        <Card className="h-full overflow-hidden rounded-3xl border-white/[0.09] bg-white/[0.025] shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl">
+                            <CardHeader className="border-b border-white/[0.07] bg-white/[0.015] px-5 py-5 sm:px-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex size-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                                                <Gauge className="size-4 text-white" />
+                                            </div>
+                                            <CardTitle className="text-base font-semibold">Evaluation inputs</CardTitle>
+                                        </div>
+                                        <CardDescription className="mt-2 text-xs leading-5">
+                                            Configure the request you want to send to the evaluation engine.
+                                        </CardDescription>
+                                    </div>
+                                    <span className="hidden rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 font-mono text-[10px] text-muted-foreground sm:inline-flex">
+                                        LIVE ENGINE
+                                    </span>
+                                </div>
                             </CardHeader>
 
-                            <CardContent>
-                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                    {Object.entries(metrics.reasons).map(([key, count]) => (
-                                        <div
-                                            key={key}
-                                            className="flex items-center justify-between rounded-lg border border-border/70 p-3 bg-card"
-                                        >
-                                            <div className="space-y-0.5">
-                                                <p className="text-xs font-semibold text-foreground">
-                                                    {REASON_MAP[key]?.label || key}
-                                                </p>
-                                                <p className="text-[10px] text-muted-foreground font-mono">
-                                                    {key}
+                            <CardContent className="px-5 py-5 sm:px-6">
+                                <form onSubmit={handleEvaluate} className="space-y-6">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="eval-proj-select" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                                01 · Project
+                                            </Label>
+                                            <ThemeSelect
+                                                id="eval-proj-select"
+                                                value={selectedProjectId}
+                                                onChange={handleProjectChange}
+                                                options={projects.map((p) => ({
+                                                    value: p.id,
+                                                    label: p.name,
+                                                }))}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="eval-env-select" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                                02 · Environment
+                                            </Label>
+                                            <ThemeSelect
+                                                id="eval-env-select"
+                                                value={selectedEnvId}
+                                                onChange={setSelectedEnvId}
+                                                disabled={environments.length === 0}
+                                                options={
+                                                    environments.length === 0
+                                                        ? [{ value: "", label: "No environments found" }]
+                                                        : environments.map((e) => ({
+                                                            value: e.id,
+                                                            label: `${e.name} (${e.key})`,
+                                                        }))
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="flag-key-select" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                            03 · Feature flag
+                                        </Label>
+                                        {flags.length > 0 ? (
+                                            <ThemeSelect
+                                                id="flag-key-select"
+                                                value={flagKey}
+                                                onChange={setFlagKey}
+                                                mono
+                                                options={flags.map((f) => ({
+                                                    value: f.key,
+                                                    label: `${f.name} (${f.key})`,
+                                                }))}
+                                            />
+                                        ) : (
+                                            <Input
+                                                id="flag-key-select"
+                                                value={flagKey}
+                                                onChange={(e) => setFlagKey(e.target.value)}
+                                                placeholder="e.g. new_checkout_experience"
+                                                className="h-11 rounded-xl border-white/[0.08] bg-black/30 font-mono text-sm"
+                                                required
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <div>
+                                                <Label htmlFor="playground-user-id" className="text-sm font-semibold">
+                                                    04 · User identity
+                                                </Label>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    This ID is used for deterministic percentage bucketing.
                                                 </p>
                                             </div>
-                                            <span className="font-mono text-base font-bold text-foreground">
-                                                {count}
+                                            <span className="hidden rounded-md border border-white/[0.08] px-2 py-1 font-mono text-[10px] text-muted-foreground sm:inline-flex">
+                                                MURMUR3
                                             </span>
                                         </div>
-                                    ))}
-                                </div>
+                                        <Input
+                                            id="playground-user-id"
+                                            value={userId}
+                                            onChange={(e) => setUserId(e.target.value)}
+                                            placeholder="e.g. user_84920"
+                                            className="h-11 rounded-xl border-white/[0.08] bg-white/[0.025] font-mono text-sm"
+                                            required
+                                        />
+                                        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+                                            The evaluation engine computes a deterministic Murmur3 hash against this User ID.
+                                        </p>
+                                    </div>
+
+                                    <div className="border-t border-white/[0.07] pt-5">
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <div>
+                                                <Label className="text-sm font-semibold">05 · User attributes</Label>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    Add context used by targeting rules.
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="xs"
+                                                onClick={addAttributeRow}
+                                                className="h-8 gap-1.5 rounded-lg border-white/[0.08] bg-white/[0.025] px-2.5 text-xs hover:bg-white/[0.06]"
+                                            >
+                                                <Plus className="size-3.5" />
+                                                Add
+                                            </Button>
+                                        </div>
+
+                                        <div className="space-y-2.5">
+                                            {attributes.map((attr, index) => (
+                                                <div key={index} className="group flex items-center gap-2 rounded-xl border border-transparent p-1 transition-all duration-200 hover:border-white/[0.06] hover:bg-white/[0.015]">
+                                                    <Input
+                                                        placeholder="Key · country"
+                                                        value={attr.key}
+                                                        onChange={(e) => updateAttributeRow(index, e.target.value, attr.value)}
+                                                        className="h-10 flex-1 rounded-lg border-white/[0.08] bg-black/30 font-mono text-xs sm:text-sm"
+                                                    />
+                                                    <Input
+                                                        placeholder="Value · US"
+                                                        value={attr.value}
+                                                        onChange={(e) => updateAttributeRow(index, attr.key, e.target.value)}
+                                                        className="h-10 flex-1 rounded-lg border-white/[0.08] bg-black/30 font-mono text-xs sm:text-sm"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        onClick={() => removeAttributeRow(index)}
+                                                        className="text-muted-foreground transition-colors hover:bg-white/[0.05] hover:text-destructive"
+                                                        aria-label={`Remove attribute ${index + 1}`}
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        disabled={loading || !flagKey.trim() || !userId.trim() || !selectedEnvId}
+                                        className="group relative h-12 w-full overflow-hidden rounded-xl bg-white text-sm font-semibold text-black shadow-[0_10px_35px_rgba(255,255,255,0.1)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_45px_rgba(255,255,255,0.17)] disabled:opacity-50"
+                                    >
+                                        <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-black/10 transition-transform duration-700 group-hover:translate-x-[430%]" />
+                                        <span className="relative flex items-center justify-center gap-2">
+                                            <Play className={`size-4 fill-current transition-transform duration-200 ${loading ? "animate-pulse scale-90" : "group-hover:translate-x-0.5"}`} />
+                                            <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+                                                {loading ? "Evaluating..." : "Evaluate Flag"}
+                                            </span>
+                                        </span>
+                                    </Button>
+                                </form>
                             </CardContent>
                         </Card>
                     </div>
-                ) : (
-                    <Card className="bg-muted/10">
-                        <CardContent className="py-6 text-center text-sm text-muted-foreground">
-                            No evaluation metrics recorded yet in this environment.
-                        </CardContent>
-                    </Card>
-                )}
+
+                    {/* Decision */}
+                    <div ref={resultCardRef} className="eval-main-card">
+                        <Card className="h-full min-h-[560px] overflow-hidden rounded-3xl border-white/[0.09] bg-white/[0.025] shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl">
+                            <CardHeader className="border-b border-white/[0.07] bg-white/[0.015] px-5 py-5 sm:px-6">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex size-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                                                <Sparkles className="size-4 text-white" />
+                                            </div>
+                                            <CardTitle className="text-base font-semibold">Evaluation result</CardTitle>
+                                        </div>
+                                        <CardDescription className="mt-2 text-xs">
+                                            {result ? `Decision computed for ${userId}.` : "Run an evaluation to see the decision."}
+                                        </CardDescription>
+                                    </div>
+                                    <span className={`rounded-full border px-2.5 py-1 font-mono text-[10px] ${result ? "border-white/[0.1] bg-white/[0.04] text-foreground" : "border-white/[0.07] text-muted-foreground"}`}>
+                                        {result ? "COMPLETED" : "READY"}
+                                    </span>
+                                </div>
+                            </CardHeader>
+
+                            <CardContent className="flex min-h-[470px] flex-col justify-center px-5 py-8 sm:px-7">
+                                {!result ? (
+                                    <div className="text-center">
+                                        <div className="mx-auto flex size-20 items-center justify-center rounded-3xl border border-white/[0.08] bg-white/[0.025] shadow-[0_0_50px_rgba(255,255,255,0.035)]">
+                                            <Gauge className="size-9 text-muted-foreground/70" />
+                                        </div>
+                                        <p className="mt-6 text-lg font-semibold text-foreground">Ready to evaluate</p>
+                                        <p className="mx-auto mt-2 max-w-xs text-xs leading-5 text-muted-foreground">
+                                            Configure the inputs on the left, then run the evaluation to see exactly why the flag was enabled or disabled.
+                                        </p>
+                                        <div className="mx-auto mt-6 max-w-xs rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3 text-left">
+                                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Flow</p>
+                                            <p className="mt-1 font-mono text-xs text-foreground">
+                                                inputs → rules → rollout → decision
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-5">
+                                        <div
+                                            className={`relative overflow-hidden rounded-2xl border p-5 ${result.enabled
+                                                ? "border-white/[0.16] bg-white/[0.055]"
+                                                : "border-white/[0.08] bg-black/20"
+                                                }`}
+                                        >
+                                            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                                            <div className="flex items-center gap-4">
+                                                <div className="decision-icon flex size-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.045] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
+                                                    {result.enabled ? (
+                                                        <CheckCircle2 className="size-7 text-white" />
+                                                    ) : (
+                                                        <XCircle className="size-7 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Decision</p>
+                                                    <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">
+                                                        {result.enabled ? "ENABLED" : "DISABLED"}
+                                                    </p>
+                                                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                                                        Flag: <code className="font-mono text-foreground">{flagKey}</code>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2.5">
+                                            <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3.5 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.025]">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-xs font-medium text-muted-foreground">Why this decision?</span>
+                                                    <Badge
+                                                        variant={REASON_MAP[result.reason]?.variant || "secondary"}
+                                                        className="font-mono text-[10px] font-semibold"
+                                                    >
+                                                        {REASON_MAP[result.reason]?.label || result.reason}
+                                                    </Badge>
+                                                </div>
+                                                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                                                    {REASON_MAP[result.reason]?.desc || "Evaluated by engine."}
+                                                </p>
+                                            </div>
+
+                                            {latency !== null && (
+                                                <div className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-black/20 p-3.5 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.025]">
+                                                    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                        <Clock className="size-3.5" />
+                                                        Engine latency
+                                                    </span>
+                                                    <span className="font-mono text-sm font-semibold text-foreground">
+                                                        {latency} ms
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+
+                {/* Metrics */}
+                <section className="mt-10 border-t border-white/[0.07] pt-8">
+                    <div className="mb-5 flex items-end justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Activity className="size-5 text-white" />
+                                <h2 className="text-lg font-semibold tracking-tight">Environment health</h2>
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Runtime statistics from evaluations in this environment.
+                            </p>
+                        </div>
+                        {metrics && (
+                            <span className="hidden rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 font-mono text-[10px] text-muted-foreground sm:inline-flex">
+                                LIVE METRICS
+                            </span>
+                        )}
+                    </div>
+
+                    {metricsLoading && !metrics ? (
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {[1, 2, 3, 4].map((item) => (
+                                <Skeleton key={item} className="h-28 rounded-2xl border border-white/[0.06] bg-white/[0.025]" />
+                            ))}
+                        </div>
+                    ) : metrics ? (
+                        <div className="space-y-5">
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {[
+                                    { label: "Total evaluations", value: metrics.totalEvaluations, icon: Activity },
+                                    { label: "Enabled results", value: metrics.enabledEvaluations, icon: CheckCircle2 },
+                                    { label: "Disabled results", value: metrics.disabledEvaluations, icon: XCircle },
+                                    { label: "Average latency", value: metrics.averageLatencyMs, icon: Clock, suffix: " ms" },
+                                ].map((metric) => {
+                                    const Icon = metric.icon;
+                                    return (
+                                        <Card
+                                            key={metric.label}
+                                            className="eval-metric group relative overflow-hidden rounded-2xl border-white/[0.08] bg-white/[0.025] shadow-none transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.14] hover:bg-white/[0.04]"
+                                        >
+                                            <div className="pointer-events-none absolute -right-10 -top-10 size-24 rounded-full bg-white/[0.035] blur-2xl transition-transform duration-500 group-hover:scale-150" />
+                                            <CardContent className="relative p-5">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
+                                                        {metric.label}
+                                                    </p>
+                                                    <Icon className="size-4 text-muted-foreground/60" />
+                                                </div>
+                                                <p className="mt-4 font-mono text-3xl font-semibold tracking-[-0.04em] text-foreground">
+                                                    {metric.value}
+                                                    {metric.suffix ?? ""}
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+
+                            <Card className="eval-breakdown overflow-hidden rounded-3xl border-white/[0.08] bg-white/[0.025] shadow-none">
+                                <CardHeader className="border-b border-white/[0.07] bg-white/[0.015] px-5 py-5">
+                                    <CardTitle className="text-sm font-semibold">Why evaluations resolve the way they do</CardTitle>
+                                    <CardDescription className="text-xs">
+                                        A cumulative breakdown of evaluation outcomes in this environment.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 sm:p-5">
+                                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        {Object.entries(metrics.reasons).map(([key, count]) => (
+                                            <div
+                                                key={key}
+                                                className="group flex min-h-[82px] items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.025]"
+                                            >
+                                                <div className="min-w-0 pr-3">
+                                                    <p className="truncate text-xs font-semibold text-foreground">
+                                                        {REASON_MAP[key]?.label || key}
+                                                    </p>
+                                                    <p className="mt-1 truncate font-mono text-[10px] text-muted-foreground">
+                                                        {key}
+                                                    </p>
+                                                </div>
+                                                <span className="font-mono text-xl font-semibold text-foreground">
+                                                    {count}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ) : (
+                        <Card className="rounded-2xl border-white/[0.08] bg-white/[0.025] shadow-none">
+                            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                                No evaluation metrics recorded yet in this environment.
+                            </CardContent>
+                        </Card>
+                    )}
+                </section>
             </div>
         </div>
     );

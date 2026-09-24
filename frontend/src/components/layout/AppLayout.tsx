@@ -6,7 +6,7 @@ export function AppLayout() {
         <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 selection:text-primary">
             <TopNavigation />
 
-            <main className="flex-1 mx-auto w-full max-w-[1600px]">
+            <main className="flex-1 container mx-auto px-4">
                 <Outlet />
             </main>
         </div>
