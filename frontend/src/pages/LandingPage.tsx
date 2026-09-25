@@ -1037,7 +1037,7 @@ if (result.enabled) {
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 selection:text-primary">
             {/* Premium Floating Navigation */}
-            <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-5">
+            <header className="sticky top-0 z-50 -mb-[72px] w-full px-3 pt-3 sm:-mb-[84px] sm:px-5">
                 <div
                     ref={navShellRef}
                     className="group/nav relative mx-auto flex h-[56px] w-full max-w-7xl items-center rounded-2xl border sm:h-[60px] border-white/[0.10] bg-black/65 px-2 shadow-[0_12px_50px_rgba(0,0,0,0.28)] backdrop-blur-2xl transition-[border-color,box-shadow,background-color] duration-500 hover:border-white/[0.16]"
@@ -1159,8 +1159,8 @@ if (result.enabled) {
                 {/* Mobile navigation panel */}
                 <div
                     className={`absolute left-0 right-0 top-[64px] rounded-2xl border border-white/[0.10] bg-black/90 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 md:hidden ${mobileMenuOpen
-                            ? "pointer-events-auto translate-y-0 opacity-100"
-                            : "pointer-events-none -translate-y-2 opacity-0"
+                        ? "pointer-events-auto translate-y-0 opacity-100"
+                        : "pointer-events-none -translate-y-2 opacity-0"
                         }`}
                 >
                     <nav className="flex flex-col gap-1">
