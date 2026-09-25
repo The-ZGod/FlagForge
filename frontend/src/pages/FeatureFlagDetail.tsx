@@ -315,13 +315,14 @@ export function FeatureFlagDetail() {
                 if (projectId) {
                     const projectsList = await getProjects();
                     const p = projectsList.find((item) => item.id === projectId);
-                    if (p) setProject(p);
-                }
-
-                if (projectId && environmentId) {
-                    const envs = await getEnvironments(projectId);
-                    const env = envs.find((e) => e.id === environmentId);
-                    if (env) setEnvironment(env);
+                    if (p) {
+                        setProject(p);
+                        if (environmentId) {
+                            const envs = await getEnvironments(projectId);
+                            const env = envs.find((e) => e.id === environmentId);
+                            if (env) setEnvironment(env);
+                        }
+                    }
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load feature flag details");

@@ -362,14 +362,15 @@ if (isNewCheckoutEnabled) {
   // Fallback to legacy checkout
 }`;
 
-    const installSnippet = `# Using npm
-npm install @flagforge/sdk
+    const installSnippets = {
+        npm: `npm install @flagforge/sdk`,
+        pnpm: `pnpm add @flagforge/sdk`,
+        yarn: `yarn add @flagforge/sdk`,
+    } as const;
 
-# Using pnpm
-pnpm add @flagforge/sdk
-
-# Using yarn
-yarn add @flagforge/sdk`;
+    const [packageManager, setPackageManager] =
+        useState<keyof typeof installSnippets>("npm");
+    const [packageCopied, setPackageCopied] = useState(false);
 
     const methodsSnippet = `// Full evaluate method returning enabled state & reason
 const result = await flagforge.evaluate("dark_mode_v2", {
@@ -649,7 +650,79 @@ app.get("/api/v1/search", async (req, res) => {
                                 Install the official TypeScript/Node.js SDK into your server, API gateway, or worker process.
                             </p>
 
-                            <CodeBlock code={installSnippet} language="bash" />
+                            <div className="overflow-hidden rounded-2xl border border-white/[0.10] bg-[#050505]/90 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+                                <div className="flex flex-col border-b border-white/[0.08] bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex items-center gap-1 p-2">
+                                        {(["npm", "pnpm", "yarn"] as const).map((manager) => {
+                                            const isActive = packageManager === manager;
+
+                                            return (
+                                                <button
+                                                    key={manager}
+                                                    type="button"
+                                                    onClick={() => setPackageManager(manager)}
+                                                    className={`relative rounded-lg px-3 py-2 font-mono text-[11px] font-semibold transition-all duration-300 ${isActive
+                                                            ? "bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.10)]"
+                                                            : "text-white/40 hover:bg-white/[0.06] hover:text-white/80"
+                                                        }`}
+                                                >
+                                                    {manager}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white/25 sm:px-4 sm:pb-0">
+                                        Package Manager
+                                    </div>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(255,255,255,0.06),transparent_32%)]" />
+                                    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex gap-1.5">
+                                                <span className="size-1.5 rounded-full bg-white/20" />
+                                                <span className="size-1.5 rounded-full bg-white/10" />
+                                                <span className="size-1.5 rounded-full bg-white/5" />
+                                            </span>
+                                            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
+                                                bash
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                try {
+                                                    await navigator.clipboard.writeText(installSnippets[packageManager]);
+                                                    setPackageCopied(true);
+                                                    window.setTimeout(() => setPackageCopied(false), 2000);
+                                                } catch {
+                                                    setPackageCopied(false);
+                                                }
+                                            }}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.035] px-2.5 py-1.5 text-[10px] font-medium text-white/45 transition-all duration-300 hover:border-white/[0.16] hover:bg-white/[0.08] hover:text-white"
+                                        >
+                                            {packageCopied ? (
+                                                <>
+                                                    <Check className="size-3 text-white" />
+                                                    <span>Copied</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy className="size-3" />
+                                                    <span>Copy</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    <pre className="relative overflow-x-auto p-5 text-xs leading-relaxed text-white/75 sm:text-sm">
+                                        <code>{installSnippets[packageManager]}</code>
+                                    </pre>
+                                </div>
+                            </div>
                         </section>
 
                         {/* Section: SDK Methods */}

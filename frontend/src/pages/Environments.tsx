@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Check,
@@ -38,6 +38,7 @@ import { getProjects, type Project } from "@/lib/projects";
 
 export function Environments() {
     const { projectId } = useParams<{ projectId: string }>();
+    const navigate = useNavigate();
 
     const [environments, setEnvironments] = useState<Environment[]>([]);
     const [project, setProject] = useState<Project | null>(null);
@@ -80,14 +81,16 @@ export function Environments() {
                 setLoading(true);
                 setError("");
 
-                const [envs, projects] = await Promise.all([
-                    getEnvironments(projectId!),
-                    getProjects(),
-                ]);
-
-                setEnvironments(envs);
+                const projects = await getProjects();
                 const current = projects.find((p) => p.id === projectId);
-                if (current) setProject(current);
+                if (!current) {
+                    navigate("/dashboard", { replace: true });
+                    return;
+                }
+                setProject(current);
+
+                const envs = await getEnvironments(projectId!);
+                setEnvironments(envs);
             } catch (err) {
                 setError(
                     err instanceof Error
@@ -100,7 +103,7 @@ export function Environments() {
         }
 
         loadProjectData();
-    }, [projectId]);
+    }, [projectId, navigate]);
 
     async function handleCreateEnvironment(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

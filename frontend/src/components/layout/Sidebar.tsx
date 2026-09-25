@@ -39,6 +39,20 @@ export function Sidebar() {
     }, []);
 
     useEffect(() => {
+        if (!projectId || projects.length === 0) {
+            return;
+        }
+
+        const projectExists = projects.some(
+            (project) => project.id === projectId
+        );
+
+        if (!projectExists) {
+            navigate("/projects", { replace: true });
+        }
+    }, [projectId, projects, navigate]);
+
+    useEffect(() => {
         if (!projectId) {
             setEnvironments([]);
             return;
@@ -48,13 +62,25 @@ export function Sidebar() {
             try {
                 const data = await getEnvironments(projectId!);
                 setEnvironments(data);
+
+                // If the URL contains an environment that doesn't
+                // belong to this project/user, recover safely.
+                if (
+                    environmentId &&
+                    !data.some((environment) => environment.id === environmentId)
+                ) {
+                    navigate(`/projects/${projectId}`, { replace: true });
+                }
             } catch {
                 setEnvironments([]);
+
+                // If the project itself is inaccessible, leave the route.
+                navigate("/projects", { replace: true });
             }
         }
 
         void loadEnvironments();
-    }, [projectId]);
+    }, [projectId, environmentId, navigate]);
 
     const currentProject = projects.find(
         (project) => project.id === projectId

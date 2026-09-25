@@ -49,11 +49,15 @@ export function TopNavigation() {
     const [loadingProjects, setLoadingProjects] = useState(true);
     const [loadingEnvironments, setLoadingEnvironments] = useState(false);
 
+    // Do NOT pre-seed from localStorage — the fetched project list will be
+    // validated against the current user's token, so we use the route params
+    // as the only trusted initial hint.  This prevents stale IDs from a
+    // previously logged-in user from leaking into a new session.
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-        routeProjectId || localStorage.getItem("flagforge_active_project_id") || null
+        routeProjectId || null
     );
     const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | null>(
-        routeEnvironmentId || localStorage.getItem("flagforge_active_env_id") || null
+        routeEnvironmentId || null
     );
 
     const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
@@ -64,14 +68,17 @@ export function TopNavigation() {
     const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
     const [creatingProject, setCreatingProject] = useState(false);
+    const [createProjectError, setCreateProjectError] = useState("");
 
     // Create Environment modal state
     const [createEnvModalOpen, setCreateEnvModalOpen] = useState(false);
     const [newEnvName, setNewEnvName] = useState("");
     const [newEnvKey, setNewEnvKey] = useState("");
     const [creatingEnv, setCreatingEnv] = useState(false);
+    const [createEnvError, setCreateEnvError] = useState("");
 
     const projectDropdownRef = useRef<HTMLDivElement>(null);
+    const mobileProjectDropdownRef = useRef<HTMLDivElement>(null);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLElement>(null);
     const currentUser = getCurrentUser();
@@ -91,15 +98,18 @@ export function TopNavigation() {
     // Close dropdowns on outside click
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (
-                projectDropdownRef.current &&
-                !projectDropdownRef.current.contains(event.target as Node)
-            ) {
+            const target = event.target as Node;
+            const clickedInsideProject =
+                (projectDropdownRef.current && projectDropdownRef.current.contains(target)) ||
+                (mobileProjectDropdownRef.current && mobileProjectDropdownRef.current.contains(target));
+
+            if (!clickedInsideProject) {
                 setProjectDropdownOpen(false);
             }
+
             if (
                 userDropdownRef.current &&
-                !userDropdownRef.current.contains(event.target as Node)
+                !userDropdownRef.current.contains(target)
             ) {
                 setUserDropdownOpen(false);
             }
@@ -153,10 +163,12 @@ export function TopNavigation() {
             return;
         }
 
+        let isMounted = true;
         async function loadProjectEnvironments() {
             try {
                 setLoadingEnvironments(true);
                 const data = await getEnvironments(activeProjId!);
+                if (!isMounted) return;
                 setEnvironments(data);
 
                 // If currently selected environment is not in this project, set to first one
@@ -171,14 +183,21 @@ export function TopNavigation() {
                     localStorage.removeItem("flagforge_active_env_id");
                 }
             } catch (err) {
-                console.error("Failed to load environments", err);
-                setEnvironments([]);
+                if (isMounted) {
+                    console.error("Failed to load environments", err);
+                    setEnvironments([]);
+                }
             } finally {
-                setLoadingEnvironments(false);
+                if (isMounted) {
+                    setLoadingEnvironments(false);
+                }
             }
         }
 
         loadProjectEnvironments();
+        return () => {
+            isMounted = false;
+        };
     }, [selectedProjectId, routeProjectId]);
 
     const activeProject = projects.find(
@@ -235,6 +254,7 @@ export function TopNavigation() {
         if (!newProjectName.trim()) return;
         try {
             setCreatingProject(true);
+            setCreateProjectError("");
             const project = await createProject(newProjectName.trim());
             setProjects((prev) => [project, ...prev]);
             setSelectedProjectId(project.id);
@@ -243,6 +263,9 @@ export function TopNavigation() {
             setCreateProjectModalOpen(false);
             navigate(`/projects/${project.id}`);
         } catch (err) {
+            setCreateProjectError(
+                err instanceof Error ? err.message : "Failed to create project"
+            );
             console.error("Failed to create project", err);
         } finally {
             setCreatingProject(false);
@@ -254,6 +277,7 @@ export function TopNavigation() {
         if (!effectiveProjectId || !newEnvName.trim() || !newEnvKey.trim()) return;
         try {
             setCreatingEnv(true);
+            setCreateEnvError("");
             const env = await createEnvironment(
                 effectiveProjectId,
                 newEnvName.trim(),
@@ -267,6 +291,9 @@ export function TopNavigation() {
             setCreateEnvModalOpen(false);
             navigate(`/projects/${effectiveProjectId}/environments/${env.id}`);
         } catch (err) {
+            setCreateEnvError(
+                err instanceof Error ? err.message : "Failed to create environment"
+            );
             console.error("Failed to create environment", err);
         } finally {
             setCreatingEnv(false);
@@ -714,7 +741,7 @@ export function TopNavigation() {
                         </div>
                     </div>
 
-                    <div className="relative shrink-0" ref={projectDropdownRef}>
+                    <div className="relative shrink-0" ref={mobileProjectDropdownRef}>
                         <button
                             type="button"
                             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
@@ -893,6 +920,12 @@ export function TopNavigation() {
                 </DialogHeader>
 
                 <form onSubmit={handleCreateProjectSubmit} className="space-y-4">
+                    {createProjectError && (
+                        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive">
+                            {createProjectError}
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <Label htmlFor="top-proj-name">Project Name</Label>
                         <Input
@@ -931,6 +964,12 @@ export function TopNavigation() {
                 </DialogHeader>
 
                 <form onSubmit={handleCreateEnvSubmit} className="space-y-4">
+                    {createEnvError && (
+                        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive">
+                            {createEnvError}
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <Label htmlFor="top-env-name">Environment Name</Label>
                         <Input

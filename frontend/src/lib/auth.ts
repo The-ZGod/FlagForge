@@ -84,4 +84,7 @@ export async function register(
 export function logout() {
     clearAccessToken();
     clearCurrentUser();
+    // Clear navigation state so the next user starts with a clean slate
+    localStorage.removeItem("flagforge_active_project_id");
+    localStorage.removeItem("flagforge_active_env_id");
 }

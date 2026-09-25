@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Plus,
@@ -36,6 +36,7 @@ import { getEnvironments, type Environment } from "@/lib/environments";
 import { getProjects, type Project } from "@/lib/projects";
 
 export function FeatureFlags() {
+    const navigate = useNavigate();
     const { projectId, environmentId } = useParams();
 
     const [flags, setFlags] = useState<FeatureFlag[]>([]);
@@ -75,8 +76,12 @@ export function FeatureFlags() {
     }
 
     useEffect(() => {
-        if (!environmentId) {
-            setError("Environment ID is missing");
+        if (!projectId || !environmentId) {
+            setProject(null);
+            setEnvironment(null);
+            setFlags([]);
+            setShowCreateModal(false);
+            setError("Environment is not selected");
             setLoading(false);
             return;
         }
@@ -86,35 +91,70 @@ export function FeatureFlags() {
                 setLoading(true);
                 setError("");
 
+                // Verify that the project belongs to the logged-in user.
+                const projectList = await getProjects();
+                const currentProject = projectList.find(
+                    (item) => item.id === projectId
+                );
+
+                if (!currentProject) {
+                    setProject(null);
+                    setEnvironment(null);
+                    setFlags([]);
+                    setShowCreateModal(false);
+                    navigate("/projects", { replace: true });
+                    return;
+                }
+
+                setProject(currentProject);
+
+                // Load only environments belonging to this project.
+                const envList = await getEnvironments(projectId!);
+                const currentEnvironment = envList.find(
+                    (item) => item.id === environmentId
+                );
+
+                if (!currentEnvironment) {
+                    setEnvironment(null);
+                    setFlags([]);
+                    setShowCreateModal(false);
+                    navigate(`/projects/${projectId}`, { replace: true });
+                    return;
+                }
+
+                setEnvironment(currentEnvironment);
+
+                // Only load flags after project + environment validation.
                 const data = await getFeatureFlags(environmentId!);
                 setFlags(data);
 
-                if (projectId) {
-                    const projectList = await getProjects();
-                    const p = projectList.find((item) => item.id === projectId);
-                    if (p) setProject(p);
-
-                    const envList = await getEnvironments(projectId);
-                    const e = envList.find((item) => item.id === environmentId);
-                    if (e) setEnvironment(e);
-                }
-
-                await Promise.all(data.map((flag) => loadRulesForFlag(flag.id)));
+                await Promise.all(
+                    data.map((flag) => loadRulesForFlag(flag.id))
+                );
             } catch (err) {
                 setError(
-                    err instanceof Error ? err.message : "Failed to load feature flags"
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load feature flags"
                 );
             } finally {
                 setLoading(false);
             }
         }
 
-        loadEnvironmentFlags();
-    }, [environmentId, projectId]);
+        void loadEnvironmentFlags();
+    }, [environmentId, projectId, navigate]);
 
     async function handleCreateFlag(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!environmentId || !flagName.trim() || !flagKey.trim()) return;
+        if (
+            !environmentId ||
+            !environment ||
+            !flagName.trim() ||
+            !flagKey.trim()
+        ) {
+            return;
+        }
 
         try {
             setCreating(true);
@@ -252,7 +292,8 @@ export function FeatureFlags() {
 
                             <Button
                                 onClick={() => setShowCreateModal(true)}
-                                className="h-10 gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-black shadow-[0_8px_30px_rgba(255,255,255,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_36px_rgba(255,255,255,0.18)]"
+                                disabled={!environment}
+                                className="h-10 gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-black shadow-[0_8px_30px_rgba(255,255,255,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_36px_rgba(255,255,255,0.18)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
                             >
                                 <Plus className="size-4" />
                                 Create Flag
@@ -318,8 +359,8 @@ export function FeatureFlags() {
                                 type="button"
                                 onClick={() => setStatusFilter(filter.key)}
                                 className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-medium transition-all ${statusFilter === filter.key
-                                        ? "bg-white text-black shadow-[0_3px_14px_rgba(0,0,0,0.3)]"
-                                        : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
+                                    ? "bg-white text-black shadow-[0_3px_14px_rgba(0,0,0,0.3)]"
+                                    : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
                                     }`}
                             >
                                 {filter.label}
@@ -372,7 +413,8 @@ export function FeatureFlags() {
                             <Button
                                 size="sm"
                                 onClick={() => setShowCreateModal(true)}
-                                className="relative mt-5 h-9 gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-white"
+                                disabled={!environment}
+                                className="relative mt-5 h-9 gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 <Plus className="size-4" />
                                 Create First Flag
@@ -536,14 +578,14 @@ export function FeatureFlags() {
                             </div>
                             <span
                                 className={`relative h-6 w-11 rounded-full border transition-colors ${flagEnabled
-                                        ? "border-white bg-white"
-                                        : "border-white/[0.12] bg-white/[0.06]"
+                                    ? "border-white bg-white"
+                                    : "border-white/[0.12] bg-white/[0.06]"
                                     }`}
                             >
                                 <span
                                     className={`absolute top-1 size-4 rounded-full transition-all ${flagEnabled
-                                            ? "left-6 bg-black"
-                                            : "left-1 bg-white/60"
+                                        ? "left-6 bg-black"
+                                        : "left-1 bg-white/60"
                                         }`}
                                 />
                             </span>
@@ -560,7 +602,12 @@ export function FeatureFlags() {
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={creating || !flagName.trim() || !flagKey.trim()}
+                                disabled={
+                                    creating ||
+                                    !environment ||
+                                    !flagName.trim() ||
+                                    !flagKey.trim()
+                                }
                                 className="h-10 rounded-xl bg-white px-5 text-sm font-semibold text-black shadow-[0_8px_28px_rgba(255,255,255,0.1)] hover:bg-white"
                             >
                                 {creating ? "Creating..." : "Create Feature Flag"}

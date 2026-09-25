@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const TOKEN_KEY = "flagforge_access_token";
 
@@ -38,6 +38,9 @@ export async function apiRequest<T>(
 
         if (response.status === 401 && token) {
             clearAccessToken();
+            localStorage.removeItem("flagforge_user");
+            localStorage.removeItem("flagforge_active_project_id");
+            localStorage.removeItem("flagforge_active_env_id");
             window.location.href = "/login";
             return Promise.reject(
                 new Error("Your session has expired. Please sign in again.")
