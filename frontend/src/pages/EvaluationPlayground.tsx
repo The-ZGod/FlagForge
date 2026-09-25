@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import gsap from "gsap";
 import {
     Activity,
@@ -147,6 +148,8 @@ function ThemeSelect({
 
         return () => ctx.revert();
     }, [open]);
+
+    useLocomotiveScroll();
 
     return (
         <div ref={rootRef} className="relative" id={id}>

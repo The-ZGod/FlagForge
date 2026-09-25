@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Card,
     CardContent,
@@ -108,6 +109,8 @@ export function Settings() {
 
         return () => ctx.revert();
     }, []);
+
+    useLocomotiveScroll();
 
     return (
         <div

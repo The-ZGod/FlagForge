@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
-import LocomotiveScroll from "locomotive-scroll";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     ArrowRight,
     Check,
@@ -84,19 +84,7 @@ export function LandingPage() {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    useEffect(() => {
-        const locomotiveScroll = new LocomotiveScroll({
-            lenisOptions: {
-                lerp: 0.08,
-                duration: 1.2,
-                smoothWheel: true,
-            },
-        });
-
-        return () => {
-            locomotiveScroll.destroy();
-        };
-    }, []);
+    useLocomotiveScroll();
 
     // Floating command-bar navigation: gently compresses and brightens while scrolling.
     useEffect(() => {
@@ -1201,9 +1189,18 @@ if (result.enabled) {
                 </div>
             </header>
 
-            {/* Hero Section with Kinetic Grid Background */}
+            {/* Hero Section with softened Kinetic Grid Background */}
             <KineticGrid globalColor="default">
-                <section className="relative px-0 pt-12 pb-16 sm:pt-16 sm:pb-20 md:pt-24 md:pb-28">
+                {/* Fade the kinetic grid down without dimming the hero content. */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-black/[0.30]"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_18%,rgba(0,0,0,0.16)_58%,rgba(0,0,0,0.38)_100%)]"
+                />
+                <section className="relative z-10 px-0 pt-12 pb-16 sm:pt-16 sm:pb-20 md:pt-24 md:pb-28">
                     <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 space-y-7 sm:space-y-8">
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/50 px-3.5 py-1 text-xs font-medium text-foreground shadow-2xs">

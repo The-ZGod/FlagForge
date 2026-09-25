@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { Link } from "react-router-dom";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Activity,
     ArrowRight,
@@ -184,6 +185,8 @@ export function Dashboard() {
 
     const enabledCount = flags.filter((flag) => flag.enabled).length;
     const totalRules = flags.reduce((total, flag) => total + flag.rules.length, 0);
+
+    useLocomotiveScroll();
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden bg-[#080808] text-white">

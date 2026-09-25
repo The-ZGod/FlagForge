@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Plus,
     Radio,
@@ -192,6 +193,8 @@ export function FeatureFlags() {
             return true;
         });
     }, [flags, searchQuery, statusFilter]);
+
+    useLocomotiveScroll();
 
     return (
         <div className="relative min-h-full overflow-hidden bg-background">

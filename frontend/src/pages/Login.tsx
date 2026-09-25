@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 
 export function Login() {
     const navigate = useNavigate();
@@ -66,6 +67,8 @@ export function Login() {
     const switchMode = (mode: "login" | "register") => {
         setAuthMode(mode); setError(""); setSuccessMsg("");
     };
+
+    useLocomotiveScroll();
 
     return (
         <div ref={pageRef} className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] px-4 py-8 text-white sm:px-6 sm:py-12">

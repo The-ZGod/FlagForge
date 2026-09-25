@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     Activity as ActivityIcon,
     CheckCircle2,
@@ -267,6 +268,8 @@ export function Activity() {
     }, [loading, filteredActivities.length]);
 
     const filters = ["ALL", "FEATURE_FLAG", "FLAG_RULE", "ENVIRONMENT", "PROJECT"];
+
+    useLocomotiveScroll();
 
     return (
         <div

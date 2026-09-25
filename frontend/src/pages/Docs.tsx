@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import LocomotiveScroll from "locomotive-scroll";
 import "locomotive-scroll/dist/locomotive-scroll.css";
 import {
+    ArrowLeft,
     ArrowRight,
     BookOpen,
     Check,
@@ -138,6 +139,7 @@ function CodeBlock({ code, language = "typescript" }: { code: string; language?:
 }
 
 export function Docs() {
+    const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState("quick-start");
     const pageRef = useRef<HTMLDivElement>(null);
     const heroRef = useRef<HTMLDivElement>(null);
@@ -441,6 +443,16 @@ app.get("/api/v1/search", async (req, res) => {
             <div className="pointer-events-none fixed bottom-[-20rem] right-[-10rem] -z-10 h-[32rem] w-[32rem] rounded-full bg-white/[0.025] blur-[110px]" />
 
             <div className="mx-auto max-w-7xl p-4 sm:p-6 md:p-8">
+                {/* Back to previous page */}
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="group mb-4 inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-3.5 py-2 text-xs font-medium text-white/55 backdrop-blur-xl transition-all duration-300 hover:-translate-x-0.5 hover:border-white/[0.16] hover:bg-white/[0.07] hover:text-white hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+                >
+                    <ArrowLeft className="size-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
+                    <span>Back</span>
+                </button>
+
                 {/* Docs Page Header */}
                 <div
                     ref={heroRef}

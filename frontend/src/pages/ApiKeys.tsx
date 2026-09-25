@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import { useParams } from "react-router-dom";
 import {
     Check,
@@ -158,6 +159,7 @@ export function ApiKeys() {
     const [error, setError] = useState("");
 
     useEffect(() => {
+
         async function loadInitialData() {
             try {
                 setLoading(true);
@@ -298,6 +300,8 @@ if (result.enabled) {
         label: environment.name,
         meta: environment.key,
     }));
+
+    useLocomotiveScroll();
 
     return (
         <div ref={pageRef} className="relative mx-auto w-full max-w-6xl overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">

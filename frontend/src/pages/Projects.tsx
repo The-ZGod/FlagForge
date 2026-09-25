@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     ArrowRight,
     Calendar,
@@ -102,6 +103,8 @@ export function Projects() {
             setCreating(false);
         }
     }
+
+    useLocomotiveScroll();
 
     return (
         <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-6xl mx-auto animate-in fade-in duration-150">

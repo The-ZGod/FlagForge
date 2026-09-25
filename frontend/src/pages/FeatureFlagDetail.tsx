@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
     AlertCircle,
     ArrowLeft,
@@ -139,10 +140,116 @@ export function FeatureFlagDetail() {
     const [evalLatency, setEvalLatency] = useState<number | null>(null);
 
     // Evaluation UI animation refs
+    const pageRef = useRef<HTMLDivElement>(null);
     const evalSectionRef = useRef<HTMLDivElement>(null);
     const evalFormRef = useRef<HTMLDivElement>(null);
     const evalOutputRef = useRef<HTMLDivElement>(null);
     const evalRowsRef = useRef<HTMLDivElement>(null);
+
+    // Premium workspace entrance + interaction motion.
+    useLayoutEffect(() => {
+        const root = pageRef.current;
+        if (!root || !flag) return;
+
+        const cleanups: Array<() => void> = [];
+
+        const ctx = gsap.context(() => {
+            const revealItems = root.querySelectorAll<HTMLElement>("[data-premium-reveal]");
+            const surfaces = root.querySelectorAll<HTMLElement>("[data-premium-tilt]");
+
+            gsap.set(revealItems, { opacity: 0, y: 18, filter: "blur(7px)" });
+
+            const intro = gsap.timeline({
+                defaults: { ease: "power3.out" },
+            });
+
+            intro
+                .to(revealItems, {
+                    opacity: 1,
+                    y: 0,
+                    filter: "blur(0px)",
+                    duration: 0.65,
+                    stagger: 0.075,
+                    clearProps: "filter,transform",
+                })
+                .fromTo(
+                    root.querySelectorAll<HTMLElement>("[data-premium-glow]"),
+                    { opacity: 0, scale: 0.96 },
+                    {
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.9,
+                        ease: "power2.out",
+                        stagger: 0.08,
+                    },
+                    0.05,
+                );
+
+            surfaces.forEach((surface) => {
+                const onMove = (event: MouseEvent) => {
+                    const rect = surface.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+                    gsap.to(surface, {
+                        rotateY: x * 2.2,
+                        rotateX: y * -2.2,
+                        y: -3,
+                        duration: 0.35,
+                        ease: "power2.out",
+                        transformPerspective: 900,
+                        transformOrigin: "center",
+                        overwrite: "auto",
+                    });
+                };
+
+                const onLeave = () => {
+                    gsap.to(surface, {
+                        rotateY: 0,
+                        rotateX: 0,
+                        y: 0,
+                        duration: 0.55,
+                        ease: "power3.out",
+                        overwrite: "auto",
+                    });
+                };
+
+                surface.addEventListener("mousemove", onMove);
+                surface.addEventListener("mouseleave", onLeave);
+
+                cleanups.push(() => {
+                    surface.removeEventListener("mousemove", onMove);
+                    surface.removeEventListener("mouseleave", onLeave);
+                });
+            });
+
+        }, root);
+
+        return () => {
+            cleanups.forEach((cleanup) => cleanup());
+            ctx.revert();
+        };
+    }, [flag?.id]);
+
+    useLayoutEffect(() => {
+        const root = pageRef.current;
+        if (!root) return;
+
+        const value = root.querySelector<HTMLElement>("[data-rollout-value]");
+        if (!value) return;
+
+        gsap.fromTo(
+            value,
+            { scale: 0.94, opacity: 0.65 },
+            {
+                scale: 1,
+                opacity: 1,
+                duration: 0.28,
+                ease: "back.out(2)",
+                overwrite: "auto",
+            },
+        );
+    }, [draftRollout]);
 
     // Premium evaluation-panel motion. Kept before conditional returns so hook order stays stable.
     useLayoutEffect(() => {
@@ -393,6 +500,8 @@ export function FeatureFlagDetail() {
         );
     }
 
+    useLocomotiveScroll();
+
     if (loading) {
         return (
             <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
@@ -433,13 +542,20 @@ export function FeatureFlagDetail() {
 
     const rolloutChanged = draftRollout !== flag.rolloutPercentage;
 
+    
+
     return (
-        <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-5xl mx-auto animate-in fade-in duration-150">
+        <div
+            ref={pageRef}
+            className="relative mx-auto max-w-5xl space-y-6 overflow-visible p-4 sm:p-6 md:p-8"
+        >
+            <div data-premium-glow className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-white/[0.035] blur-[100px]" />
+            <div data-premium-glow className="pointer-events-none absolute right-[-8rem] top-72 -z-10 h-64 w-64 rounded-full bg-white/[0.02] blur-[90px]" />
             {/* Top Breadcrumb & Actions */}
-            <div className="flex items-center justify-between">
+            <div data-premium-reveal className="flex items-center justify-between">
                 <Link
                     to={`/projects/${projectId}/environments/${environmentId}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
+                    className="group inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2 text-sm font-medium text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-x-0.5 hover:border-white/[0.15] hover:bg-white/[0.055] hover:text-foreground hover:shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
                 >
                     <ArrowLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" />
                     <span>Back to Feature Flags</span>
@@ -460,7 +576,7 @@ export function FeatureFlagDetail() {
             </div>
 
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
+                <div data-premium-reveal className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive flex items-center justify-between">
                     <span>{error}</span>
                     <button
                         type="button"
@@ -473,17 +589,23 @@ export function FeatureFlagDetail() {
             )}
 
             {/* Main Flag Header Banner */}
-            <Card className="border-border/80 shadow-xs">
-                <CardContent className="p-5 sm:p-6">
+            <Card
+                data-premium-reveal
+                data-premium-tilt
+                className="relative overflow-hidden border-white/[0.10] bg-white/[0.025] shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-colors duration-500 hover:border-white/[0.16]"
+            >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(255,255,255,0.07),transparent_32%)]" />
+                <CardContent className="relative z-10 p-5 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1.5 min-w-0">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight truncate text-foreground">
+                                <h1 className="text-2xl font-extrabold tracking-[-0.035em] text-foreground sm:text-3xl">
                                     {flag.name}
                                 </h1>
                                 <Badge
                                     variant={flag.enabled ? "default" : "secondary"}
-                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5"
+                                    className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] shadow-[0_0_20px_rgba(255,255,255,0.06)]"
                                 >
                                     {flag.enabled ? "ENABLED" : "DISABLED"}
                                 </Badge>
@@ -517,7 +639,7 @@ export function FeatureFlagDetail() {
                         </div>
 
                         {/* Master Toggle Switch */}
-                        <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/60 shrink-0 self-start sm:self-auto">
+                        <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-white/[0.08] bg-black/20 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl self-start sm:self-auto">
                             <div className="text-right">
                                 <p className="text-xs font-bold text-foreground">Master Status</p>
                                 <p className="text-[11px] text-muted-foreground">
@@ -536,419 +658,429 @@ export function FeatureFlagDetail() {
             </Card>
 
             {/* Tabs: Configuration vs Evaluation */}
-            <Tabs defaultValue="configuration" className="w-full">
-                <TabsList className="grid w-full sm:w-80 grid-cols-2">
-                    <TabsTrigger value="configuration" className="gap-2 text-sm font-medium">
-                        <Sliders className="size-4" />
-                        <span>Configuration</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="evaluation" className="gap-2 text-sm font-medium">
-                        <Sparkles className="size-4" />
-                        <span>Evaluation</span>
-                    </TabsTrigger>
-                </TabsList>
+            <div data-premium-reveal>
+                <Tabs defaultValue="configuration" className="w-full">
+                    <TabsList className="grid h-11 w-full grid-cols-2 rounded-xl border border-white/[0.08] bg-white/[0.025] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl sm:w-80">
+                        <TabsTrigger value="configuration" className="gap-2 rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-white/[0.10] data-[state=active]:text-white data-[state=active]:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)]">
+                            <Sliders className="size-4" />
+                            <span>Configuration</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="evaluation" className="gap-2 rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-white/[0.10] data-[state=active]:text-white data-[state=active]:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)]">
+                            <Sparkles className="size-4" />
+                            <span>Evaluation</span>
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Configuration Tab */}
-                <TabsContent value="configuration" className="space-y-6 pt-2">
-                    {/* Rollout Percentage Section */}
-                    <Card className="shadow-xs">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="text-base font-bold">
-                                        Percentage Rollout
-                                    </CardTitle>
-                                    <CardDescription className="text-xs sm:text-sm">
-                                        Gradually release this flag to a deterministic percentage of your user base using Murmur3 user ID hashing.
-                                    </CardDescription>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-3xl font-extrabold font-mono text-foreground">
-                                        {draftRollout}%
-                                    </span>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-3 pt-2">
-                                <Slider
-                                    value={draftRollout}
-                                    onChange={(v) => setDraftRollout(v)}
-                                    min={0}
-                                    max={100}
-                                    step={1}
-                                />
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
-                                    <span>0% (Disabled)</span>
-                                    <span>25%</span>
-                                    <span>50%</span>
-                                    <span>75%</span>
-                                    <span>100% (All Users)</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border">
-                                <p className="text-xs sm:text-sm text-muted-foreground">
-                                    {rolloutChanged ? (
-                                        <span className="text-amber-600 dark:text-amber-400 font-medium">
-                                            Unsaved draft change (Live in engine: {flag.rolloutPercentage}%)
-                                        </span>
-                                    ) : (
-                                        <span>Live in runtime engine: {flag.rolloutPercentage}%</span>
-                                    )}
-                                </p>
-
-                                <div className="flex items-center gap-2">
-                                    {rolloutSavedSuccess && (
-                                        <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                                            <Check className="size-4" />
-                                            Saved!
-                                        </span>
-                                    )}
-                                    <Button
-                                        size="sm"
-                                        onClick={handleSaveRollout}
-                                        disabled={savingRollout || !rolloutChanged}
-                                        className="gap-1.5 text-xs sm:text-sm font-semibold h-8.5"
-                                    >
-                                        <Save className="size-4" />
-                                        <span>{savingRollout ? "Saving..." : "Save Rollout"}</span>
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Targeting Rules Section */}
-                    <Card className="shadow-xs">
-                        <CardHeader className="pb-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div>
-                                    <CardTitle className="text-base font-bold">
-                                        Targeting Rules
-                                    </CardTitle>
-                                    <CardDescription className="text-xs sm:text-sm">
-                                        Target specific user cohorts based on custom attributes before rollout percentage is evaluated.
-                                    </CardDescription>
-                                </div>
-                                <Button
-                                    size="sm"
-                                    onClick={handleOpenAddRule}
-                                    className="gap-1.5 text-xs sm:text-sm font-semibold self-start sm:self-auto h-8.5"
-                                >
-                                    <Plus className="size-4" />
-                                    <span>Add Rule</span>
-                                </Button>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent>
-                            {rules.length === 0 ? (
-                                <div className="rounded-xl border border-dashed border-border/80 p-8 text-center bg-muted/20 space-y-2">
-                                    <Radio className="size-8 text-muted-foreground mx-auto opacity-50" />
-                                    <h4 className="text-sm font-bold text-foreground">No Targeting Rules Configured</h4>
-                                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                                        All users will directly receive percentage rollout evaluation. Add targeting rules to restrict this flag to specific countries, user plans, or beta groups.
-                                    </p>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleOpenAddRule}
-                                        className="mt-2 gap-1.5 text-xs"
-                                    >
-                                        <Plus className="size-3.5" />
-                                        <span>Add First Rule</span>
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-border border rounded-xl overflow-hidden bg-card shadow-2xs">
-                                    {rules.map((rule, idx) => (
-                                        <div
-                                            key={rule.id}
-                                            className="flex items-center justify-between p-3.5 sm:p-4 gap-4 hover:bg-muted/30 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                                                    {idx + 1}
-                                                </span>
-
-                                                <div className="flex items-center gap-2 flex-wrap text-sm">
-                                                    <span className="font-mono font-semibold text-foreground bg-muted px-2.5 py-0.5 rounded">
-                                                        {rule.attribute}
-                                                    </span>
-
-                                                    <Badge
-                                                        variant={rule.operator === "EQUALS" ? "default" : "secondary"}
-                                                        className="text-[10px] font-mono uppercase"
-                                                    >
-                                                        {rule.operator}
-                                                    </Badge>
-
-                                                    <span className="font-mono font-medium text-foreground bg-muted/60 px-2.5 py-0.5 rounded">
-                                                        "{rule.value}"
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-1 shrink-0">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon-xs"
-                                                    onClick={() => handleOpenEditRule(rule)}
-                                                    title="Edit rule"
-                                                >
-                                                    <Edit2 className="size-4 text-muted-foreground" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon-xs"
-                                                    onClick={() => handleDeleteRule(rule.id)}
-                                                    className="hover:text-destructive"
-                                                    title="Delete rule"
-                                                >
-                                                    <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Evaluation Tab */}
-                <TabsContent value="evaluation" className="space-y-6 pt-2">
-                    <div ref={evalSectionRef} className="relative">
-                        {/* Ambient evaluation workspace lighting */}
-                        <div className="pointer-events-none absolute -inset-x-8 -top-8 h-64 overflow-hidden rounded-[2rem] opacity-70">
-                            <div className="eval-ambient absolute left-1/4 top-0 size-72 rounded-full bg-white/[0.025] blur-[100px]" />
-                            <div className="absolute right-0 top-20 size-56 rounded-full bg-white/[0.018] blur-[90px]" />
-                        </div>
-
-                        <div className="relative mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between" data-eval-animate>
-                            <div>
-                                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                    <span className="inline-block size-1.5 rounded-full bg-foreground/70" />
-                                    Runtime Simulator
-                                </div>
-                                <h2 className="text-lg font-bold tracking-tight">Test this flag before shipping</h2>
-                                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                                    Enter a user and their attributes to see exactly how FlagForge resolves <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-foreground">{flag.key}</code>.
-                                </p>
-                            </div>
-                            <div className="hidden rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono text-muted-foreground sm:block">
-                                deterministic evaluation
-                            </div>
-                        </div>
-
-                        <div className="relative grid gap-6 md:grid-cols-12">
-                            {/* Evaluation Form */}
-                            <Card ref={evalFormRef} data-eval-animate className="group relative overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] md:col-span-7">
-                                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                <CardHeader className="relative pb-3">
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                            <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
-                                                <Play className="size-3.5" />
-                                            </span>
-                                            Input context
-                                        </div>
-                                        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">01 / 02</span>
+                    {/* Configuration Tab */}
+                    <TabsContent value="configuration" className="space-y-6 pt-2">
+                        {/* Rollout Percentage Section */}
+                        <Card
+                            data-premium-tilt
+                            className="premium-surface relative overflow-hidden border-white/[0.09] bg-white/[0.02] shadow-[0_18px_60px_rgba(0,0,0,0.20)] backdrop-blur-xl transition-colors duration-500 hover:border-white/[0.15]"
+                        >
+                            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                            <CardHeader className="relative z-10 pb-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-base font-bold">
+                                            Percentage Rollout
+                                        </CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            Gradually release this flag to a deterministic percentage of your user base using Murmur3 user ID hashing.
+                                        </CardDescription>
                                     </div>
-                                    <CardTitle className="text-base font-bold">Test a User</CardTitle>
-                                    <CardDescription className="text-xs sm:text-sm">
-                                        Simulate the runtime decision using the same deterministic engine used by your SDK.
-                                    </CardDescription>
-                                </CardHeader>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-3xl font-extrabold font-mono text-foreground">
+                                            {draftRollout}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-3 pt-2">
+                                    <Slider
+                                        value={draftRollout}
+                                        onChange={(v) => setDraftRollout(v)}
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                    />
+                                    <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                        <span>0% (Disabled)</span>
+                                        <span>25%</span>
+                                        <span>50%</span>
+                                        <span>75%</span>
+                                        <span>100% (All Users)</span>
+                                    </div>
+                                </div>
 
-                                <CardContent>
-                                    <form onSubmit={handleRunEvaluation} className="space-y-4">
-                                        <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3.5 transition-all duration-300 hover:border-white/[0.14] hover:bg-white/[0.025]">
-                                            <div className="mb-2 flex items-center justify-between gap-3">
-                                                <Label htmlFor="eval-user-id" className="text-sm font-semibold">User identity</Label>
-                                                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">required</span>
-                                            </div>
-                                            <Input
-                                                id="eval-user-id"
-                                                value={evalUserId}
-                                                onChange={(e) => setEvalUserId(e.target.value)}
-                                                placeholder="e.g. user_84920, guest-session-12"
-                                                className="font-mono text-sm"
-                                                required
-                                            />
-                                            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                                <span className="inline-block size-1 rounded-full bg-foreground/50" />
-                                                Used as the deterministic hash input for percentage rollout.
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-3 border-t border-white/[0.07] pt-4">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <div>
-                                                    <Label className="text-sm font-semibold">Context attributes</Label>
-                                                    <p className="mt-0.5 text-[11px] text-muted-foreground">Optional values used by targeting rules.</p>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="xs"
-                                                    onClick={addAttributeRow}
-                                                    className="h-7 text-xs px-2.5 gap-1"
-                                                >
-                                                    <Plus className="size-3.5" />
-                                                    Add Attribute
-                                                </Button>
-                                            </div>
-
-                                            <div ref={evalRowsRef} className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                                                {evalAttributes.map((attr, index) => (
-                                                    <div key={index} data-eval-row className="group/row flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/20 p-1.5 transition-all duration-200 hover:border-white/[0.13] hover:bg-white/[0.025]">
-                                                        <Input
-                                                            placeholder="Key (e.g. country)"
-                                                            value={attr.key}
-                                                            onChange={(e) =>
-                                                                updateAttributeRow(index, e.target.value, attr.value)
-                                                            }
-                                                            className="font-mono text-xs sm:text-sm flex-1"
-                                                        />
-                                                        <Input
-                                                            placeholder="Value (e.g. US)"
-                                                            value={attr.value}
-                                                            onChange={(e) =>
-                                                                updateAttributeRow(index, attr.key, e.target.value)
-                                                            }
-                                                            className="font-mono text-xs sm:text-sm flex-1"
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon-xs"
-                                                            onClick={() => removeAttributeRow(index)}
-                                                            className="text-muted-foreground hover:text-destructive"
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {evalError && (
-                                            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
-                                                {evalError}
-                                            </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border">
+                                    <p className="text-xs sm:text-sm text-muted-foreground">
+                                        {rolloutChanged ? (
+                                            <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                                Unsaved draft change (Live in engine: {flag.rolloutPercentage}%)
+                                            </span>
+                                        ) : (
+                                            <span>Live in runtime engine: {flag.rolloutPercentage}%</span>
                                         )}
+                                    </p>
 
-                                        <Button
-                                            type="submit"
-                                            disabled={evaluating || !evalUserId.trim()}
-                                            className="group/run relative h-11 w-full overflow-hidden gap-2 text-sm font-semibold shadow-[0_12px_35px_rgba(255,255,255,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(255,255,255,0.12)]"
-                                        >
-                                            <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-black/10 transition-transform duration-700 group-hover/run:translate-x-[430%]" />
-                                            <Play className="relative size-4 transition-transform duration-300 group-hover/run:translate-x-0.5" />
-                                            <span className="relative">{evaluating ? "Evaluating runtime..." : "Run Evaluation"}</span>
-                                        </Button>
-                                    </form>
-                                </CardContent>
-                            </Card>
-
-                            {/* Evaluation Result Output */}
-                            <Card ref={evalOutputRef} data-eval-animate className="group relative flex flex-col justify-between overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] md:col-span-5">
-                                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                <CardHeader className="relative pb-3">
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                            <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
-                                                <Sparkles className="size-3.5" />
+                                    <div className="flex items-center gap-2">
+                                        {rolloutSavedSuccess && (
+                                            <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                                                <Check className="size-4" />
+                                                Saved!
                                             </span>
-                                            Runtime decision
-                                        </div>
-                                        <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">02 / 02</span>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            onClick={handleSaveRollout}
+                                            disabled={savingRollout || !rolloutChanged}
+                                            className="gap-1.5 text-xs sm:text-sm font-semibold h-8.5"
+                                        >
+                                            <Save className="size-4" />
+                                            <span>{savingRollout ? "Saving..." : "Save Rollout"}</span>
+                                        </Button>
                                     </div>
-                                    <CardTitle className="text-base font-bold">Evaluation Result</CardTitle>
-                                    <CardDescription className="text-xs sm:text-sm">
-                                        The exact decision returned by the FlagForge evaluation engine.
-                                    </CardDescription>
-                                </CardHeader>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                <CardContent className="relative flex min-h-[340px] flex-1 flex-col justify-center">
-                                    {!evalResult ? (
-                                        <div data-eval-empty className="relative overflow-hidden rounded-2xl border border-dashed border-white/[0.08] bg-black/20 px-5 py-12 text-center text-muted-foreground">
-                                            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                                                <Gauge className="size-7 opacity-50" />
-                                            </div>
-                                            <p className="text-sm font-semibold text-foreground/80">Ready to evaluate</p>
-                                            <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                                                Configure the user context on the left, then run the simulation to see the runtime decision.
-                                            </p>
-                                            <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono">
-                                                <span className="size-1.5 rounded-full bg-white/40" />
-                                                awaiting input
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div data-eval-result className="space-y-4">
+                        {/* Targeting Rules Section */}
+                        <Card
+                            data-premium-tilt
+                            className="premium-surface relative overflow-hidden border-white/[0.09] bg-white/[0.02] shadow-[0_18px_60px_rgba(0,0,0,0.20)] backdrop-blur-xl transition-colors duration-500 hover:border-white/[0.15]"
+                        >
+                            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                            <CardHeader className="relative z-10 pb-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <CardTitle className="text-base font-bold">
+                                            Targeting Rules
+                                        </CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            Target specific user cohorts based on custom attributes before rollout percentage is evaluated.
+                                        </CardDescription>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        onClick={handleOpenAddRule}
+                                        className="gap-1.5 text-xs sm:text-sm font-semibold self-start sm:self-auto h-8.5"
+                                    >
+                                        <Plus className="size-4" />
+                                        <span>Add Rule</span>
+                                    </Button>
+                                </div>
+                            </CardHeader>
+
+                            <CardContent>
+                                {rules.length === 0 ? (
+                                    <div className="rounded-xl border border-dashed border-border/80 p-8 text-center bg-muted/20 space-y-2">
+                                        <Radio className="size-8 text-muted-foreground mx-auto opacity-50" />
+                                        <h4 className="text-sm font-bold text-foreground">No Targeting Rules Configured</h4>
+                                        <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                                            All users will directly receive percentage rollout evaluation. Add targeting rules to restrict this flag to specific countries, user plans, or beta groups.
+                                        </p>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleOpenAddRule}
+                                            className="mt-2 gap-1.5 text-xs"
+                                        >
+                                            <Plus className="size-3.5" />
+                                            <span>Add First Rule</span>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-border border rounded-xl overflow-hidden bg-card shadow-2xs">
+                                        {rules.map((rule, idx) => (
                                             <div
-                                                className={`relative overflow-hidden p-4 rounded-2xl border flex items-center gap-3.5 ${evalResult.enabled
+                                                key={rule.id}
+                                                className="flex items-center justify-between p-3.5 sm:p-4 gap-4 hover:bg-muted/30 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                                                        {idx + 1}
+                                                    </span>
+
+                                                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                                                        <span className="font-mono font-semibold text-foreground bg-muted px-2.5 py-0.5 rounded">
+                                                            {rule.attribute}
+                                                        </span>
+
+                                                        <Badge
+                                                            variant={rule.operator === "EQUALS" ? "default" : "secondary"}
+                                                            className="text-[10px] font-mono uppercase"
+                                                        >
+                                                            {rule.operator}
+                                                        </Badge>
+
+                                                        <span className="font-mono font-medium text-foreground bg-muted/60 px-2.5 py-0.5 rounded">
+                                                            "{rule.value}"
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        onClick={() => handleOpenEditRule(rule)}
+                                                        title="Edit rule"
+                                                    >
+                                                        <Edit2 className="size-4 text-muted-foreground" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        onClick={() => handleDeleteRule(rule.id)}
+                                                        className="hover:text-destructive"
+                                                        title="Delete rule"
+                                                    >
+                                                        <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Evaluation Tab */}
+                    <TabsContent value="evaluation" className="space-y-6 pt-2">
+                        <div ref={evalSectionRef} className="relative">
+                            {/* Ambient evaluation workspace lighting */}
+                            <div className="pointer-events-none absolute -inset-x-8 -top-8 h-64 overflow-hidden rounded-[2rem] opacity-70">
+                                <div className="eval-ambient absolute left-1/4 top-0 size-72 rounded-full bg-white/[0.025] blur-[100px]" />
+                                <div className="absolute right-0 top-20 size-56 rounded-full bg-white/[0.018] blur-[90px]" />
+                            </div>
+
+                            <div className="relative mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between" data-eval-animate>
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                        <span className="inline-block size-1.5 rounded-full bg-foreground/70" />
+                                        Runtime Simulator
+                                    </div>
+                                    <h2 className="text-lg font-bold tracking-tight">Test this flag before shipping</h2>
+                                    <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                                        Enter a user and their attributes to see exactly how FlagForge resolves <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-foreground">{flag.key}</code>.
+                                    </p>
+                                </div>
+                                <div className="hidden rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono text-muted-foreground sm:block">
+                                    deterministic evaluation
+                                </div>
+                            </div>
+
+                            <div className="relative grid gap-6 md:grid-cols-12">
+                                {/* Evaluation Form */}
+                                <Card ref={evalFormRef} data-eval-animate className="group relative overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-[border-color,box-shadow,transform] duration-500 hover:-translate-y-0.5 hover:border-white/[0.15] hover:shadow-[0_26px_85px_rgba(0,0,0,0.34)] md:col-span-7">
+                                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                    <CardHeader className="relative pb-3">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                                <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
+                                                    <Play className="size-3.5" />
+                                                </span>
+                                                Input context
+                                            </div>
+                                            <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">01 / 02</span>
+                                        </div>
+                                        <CardTitle className="text-base font-bold">Test a User</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            Simulate the runtime decision using the same deterministic engine used by your SDK.
+                                        </CardDescription>
+                                    </CardHeader>
+
+                                    <CardContent>
+                                        <form onSubmit={handleRunEvaluation} className="space-y-4">
+                                            <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3.5 transition-all duration-300 hover:border-white/[0.14] hover:bg-white/[0.025]">
+                                                <div className="mb-2 flex items-center justify-between gap-3">
+                                                    <Label htmlFor="eval-user-id" className="text-sm font-semibold">User identity</Label>
+                                                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">required</span>
+                                                </div>
+                                                <Input
+                                                    id="eval-user-id"
+                                                    value={evalUserId}
+                                                    onChange={(e) => setEvalUserId(e.target.value)}
+                                                    placeholder="e.g. user_84920, guest-session-12"
+                                                    className="font-mono text-sm"
+                                                    required
+                                                />
+                                                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                                    <span className="inline-block size-1 rounded-full bg-foreground/50" />
+                                                    Used as the deterministic hash input for percentage rollout.
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-3 border-t border-white/[0.07] pt-4">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <Label className="text-sm font-semibold">Context attributes</Label>
+                                                        <p className="mt-0.5 text-[11px] text-muted-foreground">Optional values used by targeting rules.</p>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="xs"
+                                                        onClick={addAttributeRow}
+                                                        className="h-7 text-xs px-2.5 gap-1"
+                                                    >
+                                                        <Plus className="size-3.5" />
+                                                        Add Attribute
+                                                    </Button>
+                                                </div>
+
+                                                <div ref={evalRowsRef} className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                    {evalAttributes.map((attr, index) => (
+                                                        <div key={index} data-eval-row className="group/row flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/20 p-1.5 transition-all duration-200 hover:border-white/[0.13] hover:bg-white/[0.025]">
+                                                            <Input
+                                                                placeholder="Key (e.g. country)"
+                                                                value={attr.key}
+                                                                onChange={(e) =>
+                                                                    updateAttributeRow(index, e.target.value, attr.value)
+                                                                }
+                                                                className="font-mono text-xs sm:text-sm flex-1"
+                                                            />
+                                                            <Input
+                                                                placeholder="Value (e.g. US)"
+                                                                value={attr.value}
+                                                                onChange={(e) =>
+                                                                    updateAttributeRow(index, attr.key, e.target.value)
+                                                                }
+                                                                className="font-mono text-xs sm:text-sm flex-1"
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon-xs"
+                                                                onClick={() => removeAttributeRow(index)}
+                                                                className="text-muted-foreground hover:text-destructive"
+                                                            >
+                                                                <Trash2 className="size-4" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {evalError && (
+                                                <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
+                                                    {evalError}
+                                                </div>
+                                            )}
+
+                                            <Button
+                                                type="submit"
+                                                disabled={evaluating || !evalUserId.trim()}
+                                                className="group/run relative h-11 w-full overflow-hidden gap-2 text-sm font-semibold shadow-[0_12px_35px_rgba(255,255,255,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(255,255,255,0.12)]"
+                                            >
+                                                <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-black/10 transition-transform duration-700 group-hover/run:translate-x-[430%]" />
+                                                <Play className="relative size-4 transition-transform duration-300 group-hover/run:translate-x-0.5" />
+                                                <span className="relative">{evaluating ? "Evaluating runtime..." : "Run Evaluation"}</span>
+                                            </Button>
+                                        </form>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Evaluation Result Output */}
+                                <Card ref={evalOutputRef} data-eval-animate className="group relative flex flex-col justify-between overflow-hidden border-white/[0.09] bg-white/[0.018] shadow-[0_20px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-[border-color,box-shadow,transform] duration-500 hover:-translate-y-0.5 hover:border-white/[0.15] hover:shadow-[0_26px_85px_rgba(0,0,0,0.34)] md:col-span-5">
+                                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                    <CardHeader className="relative pb-3">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                                <span className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
+                                                    <Sparkles className="size-3.5" />
+                                                </span>
+                                                Runtime decision
+                                            </div>
+                                            <span className="rounded-full border border-white/[0.08] px-2 py-1 text-[10px] font-mono text-muted-foreground">02 / 02</span>
+                                        </div>
+                                        <CardTitle className="text-base font-bold">Evaluation Result</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            The exact decision returned by the FlagForge evaluation engine.
+                                        </CardDescription>
+                                    </CardHeader>
+
+                                    <CardContent className="relative flex min-h-[340px] flex-1 flex-col justify-center">
+                                        {!evalResult ? (
+                                            <div data-eval-empty className="relative overflow-hidden rounded-2xl border border-dashed border-white/[0.08] bg-black/20 px-5 py-12 text-center text-muted-foreground">
+                                                <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                                                    <Gauge className="size-7 opacity-50" />
+                                                </div>
+                                                <p className="text-sm font-semibold text-foreground/80">Ready to evaluate</p>
+                                                <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+                                                    Configure the user context on the left, then run the simulation to see the runtime decision.
+                                                </p>
+                                                <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 text-[10px] font-mono">
+                                                    <span className="size-1.5 rounded-full bg-white/40" />
+                                                    awaiting input
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div data-eval-result className="space-y-4">
+                                                <div
+                                                    className={`relative overflow-hidden p-4 rounded-2xl border flex items-center gap-3.5 ${evalResult.enabled
                                                         ? "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400"
                                                         : "bg-muted/50 border-border text-muted-foreground"
-                                                    }`}
-                                            >
-                                                {evalResult.enabled ? (
-                                                    <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
-                                                        <CheckCircle2 className="size-7 text-green-500" />
-                                                    </span>
-                                                ) : (
-                                                    <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.05]">
-                                                        <XCircle className="size-7 text-muted-foreground" />
-                                                    </span>
-                                                )}
-                                                <div>
-                                                    <p className="text-xl font-extrabold tracking-tight">
-                                                        {evalResult.enabled ? "ENABLED" : "DISABLED"}
-                                                    </p>
-                                                    <p className="text-xs font-medium opacity-90">
-                                                        Flag state for {evalUserId}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-2.5 text-xs sm:text-sm">
-                                                <div className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.035]">
-                                                    <span className="text-muted-foreground font-medium">Decision reason</span>
-                                                    <Badge
-                                                        variant={REASON_LABELS[evalResult.reason]?.variant || "secondary"}
-                                                        className="font-mono text-xs font-semibold"
-                                                    >
-                                                        {REASON_LABELS[evalResult.reason]?.label || evalResult.reason}
-                                                    </Badge>
-                                                </div>
-
-                                                <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3 text-xs leading-relaxed text-muted-foreground">
-                                                    {REASON_LABELS[evalResult.reason]?.desc || "Evaluated by engine."}
-                                                </div>
-
-                                                {evalLatency !== null && (
-                                                    <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.018] p-2.5 text-xs text-muted-foreground">
-                                                        <span className="flex items-center gap-1.5">
-                                                            <Clock className="size-3.5" />
-                                                            Roundtrip Latency:
+                                                        }`}
+                                                >
+                                                    {evalResult.enabled ? (
+                                                        <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
+                                                            <CheckCircle2 className="size-7 text-green-500" />
                                                         </span>
-                                                        <span className="font-mono font-bold text-foreground">
-                                                            {evalLatency} ms
+                                                    ) : (
+                                                        <span data-eval-result-icon className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.05]">
+                                                            <XCircle className="size-7 text-muted-foreground" />
                                                         </span>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-xl font-extrabold tracking-tight">
+                                                            {evalResult.enabled ? "ENABLED" : "DISABLED"}
+                                                        </p>
+                                                        <p className="text-xs font-medium opacity-90">
+                                                            Flag state for {evalUserId}
+                                                        </p>
                                                     </div>
-                                                )}
+                                                </div>
+
+                                                <div className="space-y-2.5 text-xs sm:text-sm">
+                                                    <div className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.035]">
+                                                        <span className="text-muted-foreground font-medium">Decision reason</span>
+                                                        <Badge
+                                                            variant={REASON_LABELS[evalResult.reason]?.variant || "secondary"}
+                                                            className="font-mono text-xs font-semibold"
+                                                        >
+                                                            {REASON_LABELS[evalResult.reason]?.label || evalResult.reason}
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3 text-xs leading-relaxed text-muted-foreground">
+                                                        {REASON_LABELS[evalResult.reason]?.desc || "Evaluated by engine."}
+                                                    </div>
+
+                                                    {evalLatency !== null && (
+                                                        <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.018] p-2.5 text-xs text-muted-foreground">
+                                                            <span className="flex items-center gap-1.5">
+                                                                <Clock className="size-3.5" />
+                                                                Roundtrip Latency:
+                                                            </span>
+                                                            <span className="font-mono font-bold text-foreground">
+                                                                {evalLatency} ms
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
-                    </div>
-                </TabsContent>
-            </Tabs>
+                    </TabsContent>
+                </Tabs>
+            </div>
 
             {/* Rule Modal (Create / Edit) */}
             <Dialog open={ruleModalOpen} onOpenChange={setRuleModalOpen}>
@@ -1017,7 +1149,7 @@ export function FeatureFlagDetail() {
                         <Button
                             type="submit"
                             disabled={savingRule || !ruleAttribute.trim() || !ruleValue.trim()}
-                            className="text-xs sm:text-sm font-semibold"
+                            className="gap-2 rounded-xl text-xs font-semibold shadow-[0_10px_30px_rgba(255,255,255,0.06)] sm:text-sm"
                         >
                             {savingRule ? "Saving..." : editingRule ? "Update Rule" : "Add Rule"}
                         </Button>
