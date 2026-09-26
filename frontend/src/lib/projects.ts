@@ -18,3 +18,7 @@ export async function createProject(name: string): Promise<Project> {
         body: JSON.stringify({ name }),
     });
 }
+
+export function openCreateProjectModal() {
+    window.dispatchEvent(new CustomEvent("flagforge:open-create-project"));
+}

@@ -10,6 +10,7 @@ import {
     Gauge,
     FolderKanban,
     Layers,
+    Plus,
     Radio,
     RefreshCw,
     Sliders,
@@ -28,7 +29,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 
-import { getProjects, type Project } from "@/lib/projects";
+import { getProjects, openCreateProjectModal, type Project } from "@/lib/projects";
 import { getEnvironments, type Environment } from "@/lib/environments";
 import {
     getFeatureFlags,
@@ -105,6 +106,15 @@ export function Dashboard() {
 
     useEffect(() => {
         loadDashboardData();
+
+        const handleProjectCreated = () => {
+            loadDashboardData();
+        };
+
+        window.addEventListener("flagforge:project-created", handleProjectCreated);
+        return () => {
+            window.removeEventListener("flagforge:project-created", handleProjectCreated);
+        };
     }, []);
 
     useEffect(() => {
@@ -217,7 +227,7 @@ export function Dashboard() {
                             </div>
                         </div>
 
-                        {projects.length > 0 && environments.length > 0 && (
+                        {projects.length > 0 && environments.length > 0 ? (
                             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                                 <Link to={`/projects/${projects[0].id}/environments/${environments[0].id}/evaluate`}>
                                     <Button variant="outline" className="group h-10 w-full gap-2 rounded-xl border-white/[0.14] bg-white/[0.045] px-4 text-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/[0.24] hover:bg-white/[0.08] hover:-translate-y-0.5 sm:w-auto">
@@ -233,7 +243,18 @@ export function Dashboard() {
                                     </Button>
                                 </Link>
                             </div>
-                        )}
+                        ) : projects.length === 0 && !loading ? (
+                            <div className="flex w-full sm:w-auto">
+                                <Button
+                                    onClick={openCreateProjectModal}
+                                    className="group h-10 w-full gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-black shadow-[0_10px_35px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
+                                >
+                                    <Plus className="size-4" />
+                                    Create Project
+                                    <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                                </Button>
+                            </div>
+                        ) : null}
                     </div>
                 </section>
 
@@ -337,13 +358,30 @@ export function Dashboard() {
                             </div>
                         ) : flags.length === 0 ? (
                             <CardContent className="py-16 text-center">
-                                <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl border border-border bg-muted/30">
-                                    <Radio className="size-5 text-muted-foreground" />
+                                <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.03]">
+                                    {projects.length === 0 ? (
+                                        <FolderKanban className="size-5 text-white/60" />
+                                    ) : (
+                                        <Radio className="size-5 text-muted-foreground" />
+                                    )}
                                 </div>
-                                <h3 className="font-semibold">No Feature Flags Found</h3>
-                                <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                                    Create a project and environment to start managing feature flags.
+                                <h3 className="font-semibold text-white">
+                                    {projects.length === 0 ? "Create your first project" : "No Feature Flags Found"}
+                                </h3>
+                                <p className="mx-auto mt-1 max-w-md text-sm text-white/50">
+                                    {projects.length === 0
+                                        ? "Projects contain your environments, feature flags, and evaluations."
+                                        : "Create an environment to start managing feature flags."}
                                 </p>
+                                {projects.length === 0 && (
+                                    <Button
+                                        onClick={openCreateProjectModal}
+                                        className="mt-4 gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black hover:bg-white/90 shadow-[0_8px_30px_rgba(255,255,255,0.1)]"
+                                    >
+                                        <Plus className="size-3.5" />
+                                        Create Project
+                                    </Button>
+                                )}
                             </CardContent>
                         ) : (
                             <div className="space-y-4 p-4">

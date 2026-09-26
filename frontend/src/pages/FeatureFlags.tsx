@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLocomotiveScroll } from "@/hooks/useLocomotiveScroll";
 import {
+    ArrowRight,
+    FolderKanban,
     Plus,
     Radio,
     Search,
@@ -13,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-// import { Skeleton } from "@/components/ui/skeleton";
 import {
     Dialog,
     DialogClose,
@@ -33,7 +34,7 @@ import {
 } from "@/lib/feature-flags";
 import { getFlagRules, type FlagRule } from "@/lib/flag-rules";
 import { getEnvironments, type Environment } from "@/lib/environments";
-import { getProjects, type Project } from "@/lib/projects";
+import { getProjects, openCreateProjectModal, type Project } from "@/lib/projects";
 
 export function FeatureFlags() {
     const navigate = useNavigate();
@@ -43,6 +44,7 @@ export function FeatureFlags() {
     const [rules, setRules] = useState<Record<string, FlagRule[]>>({});
     const [environment, setEnvironment] = useState<Environment | null>(null);
     const [project, setProject] = useState<Project | null>(null);
+    const [hasNoProjects, setHasNoProjects] = useState(false);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -75,74 +77,98 @@ export function FeatureFlags() {
         }
     }
 
-    useEffect(() => {
-        if (!projectId || !environmentId) {
-            setProject(null);
-            setEnvironment(null);
-            setFlags([]);
-            setShowCreateModal(false);
-            setError("Environment is not selected");
-            setLoading(false);
-            return;
-        }
+    async function loadEnvironmentFlags() {
+        try {
+            setLoading(true);
+            setError("");
 
-        async function loadEnvironmentFlags() {
-            try {
-                setLoading(true);
-                setError("");
+            // Verify that the project belongs to the logged-in user.
+            const projectList = await getProjects();
 
-                // Verify that the project belongs to the logged-in user.
-                const projectList = await getProjects();
-                const currentProject = projectList.find(
-                    (item) => item.id === projectId
-                );
-
-                if (!currentProject) {
-                    setProject(null);
-                    setEnvironment(null);
-                    setFlags([]);
-                    setShowCreateModal(false);
-                    navigate("/projects", { replace: true });
-                    return;
-                }
-
-                setProject(currentProject);
-
-                // Load only environments belonging to this project.
-                const envList = await getEnvironments(projectId!);
-                const currentEnvironment = envList.find(
-                    (item) => item.id === environmentId
-                );
-
-                if (!currentEnvironment) {
-                    setEnvironment(null);
-                    setFlags([]);
-                    setShowCreateModal(false);
-                    navigate(`/projects/${projectId}`, { replace: true });
-                    return;
-                }
-
-                setEnvironment(currentEnvironment);
-
-                // Only load flags after project + environment validation.
-                const data = await getFeatureFlags(environmentId!);
-                setFlags(data);
-
-                await Promise.all(
-                    data.map((flag) => loadRulesForFlag(flag.id))
-                );
-            } catch (err) {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load feature flags"
-                );
-            } finally {
+            if (projectList.length === 0) {
+                setHasNoProjects(true);
+                setProject(null);
+                setEnvironment(null);
+                setFlags([]);
+                setShowCreateModal(false);
                 setLoading(false);
+                return;
             }
-        }
 
+            setHasNoProjects(false);
+
+            if (!projectId || !environmentId) {
+                const targetProj = projectList[0];
+                const envList = await getEnvironments(targetProj.id);
+                if (envList.length > 0) {
+                    navigate(`/projects/${targetProj.id}/environments/${envList[0].id}`, { replace: true });
+                    return;
+                } else {
+                    navigate(`/projects/${targetProj.id}`, { replace: true });
+                    return;
+                }
+            }
+
+            const currentProject = projectList.find(
+                (item) => item.id === projectId
+            );
+
+            if (!currentProject) {
+                setProject(null);
+                setEnvironment(null);
+                setFlags([]);
+                setShowCreateModal(false);
+                navigate("/projects", { replace: true });
+                return;
+            }
+
+            setProject(currentProject);
+
+            // Load only environments belonging to this project.
+            const envList = await getEnvironments(projectId!);
+            const currentEnvironment = envList.find(
+                (item) => item.id === environmentId
+            );
+
+            if (!currentEnvironment) {
+                setEnvironment(null);
+                setFlags([]);
+                setShowCreateModal(false);
+                navigate(`/projects/${projectId}`, { replace: true });
+                return;
+            }
+
+            setEnvironment(currentEnvironment);
+
+            // Only load flags after project + environment validation.
+            const data = await getFeatureFlags(environmentId!);
+            setFlags(data);
+
+            await Promise.all(
+                data.map((flag) => loadRulesForFlag(flag.id))
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to load feature flags"
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
         void loadEnvironmentFlags();
+
+        const handleProjectCreated = () => {
+            void loadEnvironmentFlags();
+        };
+
+        window.addEventListener("flagforge:project-created", handleProjectCreated);
+        return () => {
+            window.removeEventListener("flagforge:project-created", handleProjectCreated);
+        };
     }, [environmentId, projectId, navigate]);
 
     async function handleCreateFlag(event: React.FormEvent<HTMLFormElement>) {
@@ -235,6 +261,33 @@ export function FeatureFlags() {
     }, [flags, searchQuery, statusFilter]);
 
     useLocomotiveScroll();
+
+    if (hasNoProjects) {
+        return (
+            <div className="relative min-h-full overflow-hidden bg-background">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.055),transparent_62%)]" />
+                <div className="relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.035] shadow-[inset_0_1px_rgba(255,255,255,0.08)]">
+                        <FolderKanban className="size-6 text-white/70" />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                        Create your first project
+                    </h2>
+                    <p className="mt-2.5 max-w-sm text-sm leading-6 text-white/50">
+                        Projects contain your environments, feature flags, and evaluations.
+                    </p>
+                    <Button
+                        onClick={openCreateProjectModal}
+                        className="group mt-6 h-11 gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black shadow-[0_10px_35px_rgba(255,255,255,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white/90"
+                    >
+                        <Plus className="size-4" />
+                        Create Project
+                        <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative min-h-full overflow-hidden bg-background">

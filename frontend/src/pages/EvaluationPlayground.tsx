@@ -5,8 +5,10 @@ import gsap from "gsap";
 import {
     Activity,
     ArrowLeft,
+    ArrowRight,
     CheckCircle2,
     Clock,
+    FolderKanban,
     Gauge,
     ChevronDown,
     Play,
@@ -38,7 +40,7 @@ import {
 } from "@/lib/evaluation";
 import { getFeatureFlags, type FeatureFlag } from "@/lib/feature-flags";
 import { getEnvironments, type Environment } from "@/lib/environments";
-import { getProjects, type Project } from "@/lib/projects";
+import { getProjects, openCreateProjectModal, type Project } from "@/lib/projects";
 
 const REASON_MAP: Record<string, { label: string; desc: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     FULL_ROLLOUT: {
@@ -253,6 +255,7 @@ export function EvaluationPlayground() {
     const [metricsLoading, setMetricsLoading] = useState(true);
     const [error, setError] = useState("");
     const [latency, setLatency] = useState<number | null>(null);
+    const [hasNoProjects, setHasNoProjects] = useState(false);
 
     // Initial load of projects and environments
     useEffect(() => {
@@ -261,23 +264,34 @@ export function EvaluationPlayground() {
                 const projectList = await getProjects();
                 setProjects(projectList);
 
-                if (projectList.length > 0) {
-                    const targetProjId =
-                        routeProjectId && projectList.some((p) => p.id === routeProjectId)
-                            ? routeProjectId
-                            : projectList[0].id;
-                    setSelectedProjectId(targetProjId);
+                if (projectList.length === 0) {
+                    setHasNoProjects(true);
+                    setEnvironments([]);
+                    setSelectedProjectId("");
+                    setSelectedEnvId("");
+                    setFlags([]);
+                    setMetrics(null);
+                    setMetricsLoading(false);
+                    return;
+                }
 
-                    const envList = await getEnvironments(targetProjId);
-                    setEnvironments(envList);
+                setHasNoProjects(false);
 
-                    if (envList.length > 0) {
-                        const targetEnvId =
-                            routeEnvironmentId && envList.some((e) => e.id === routeEnvironmentId)
-                                ? routeEnvironmentId
-                                : envList[0].id;
-                        setSelectedEnvId(targetEnvId);
-                    }
+                const targetProjId =
+                    routeProjectId && projectList.some((p) => p.id === routeProjectId)
+                        ? routeProjectId
+                        : projectList[0].id;
+                setSelectedProjectId(targetProjId);
+
+                const envList = await getEnvironments(targetProjId);
+                setEnvironments(envList);
+
+                if (envList.length > 0) {
+                    const targetEnvId =
+                        routeEnvironmentId && envList.some((e) => e.id === routeEnvironmentId)
+                            ? routeEnvironmentId
+                            : envList[0].id;
+                    setSelectedEnvId(targetEnvId);
                 }
             } catch (err) {
                 console.error("Failed to load evaluation context", err);
@@ -285,6 +299,15 @@ export function EvaluationPlayground() {
         }
 
         loadContext();
+
+        const handleProjectCreated = () => {
+            loadContext();
+        };
+
+        window.addEventListener("flagforge:project-created", handleProjectCreated);
+        return () => {
+            window.removeEventListener("flagforge:project-created", handleProjectCreated);
+        };
     }, [routeProjectId, routeEnvironmentId]);
 
     // Load flags and metrics when selected environment changes
@@ -488,6 +511,35 @@ export function EvaluationPlayground() {
 
         return () => ctx.revert();
     }, [result]);
+
+    if (hasNoProjects) {
+        return (
+            <div className="relative min-h-full overflow-hidden bg-[#050505] text-foreground">
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-x-0 top-0 h-[32rem] bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.07),transparent_62%)]" />
+                </div>
+                <div className="relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.035] shadow-[inset_0_1px_rgba(255,255,255,0.08)]">
+                        <FolderKanban className="size-6 text-white/70" />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                        Create your first project
+                    </h2>
+                    <p className="mt-2.5 max-w-sm text-sm leading-6 text-white/50">
+                        Projects contain your environments, feature flags, and evaluations.
+                    </p>
+                    <Button
+                        onClick={openCreateProjectModal}
+                        className="group mt-6 h-11 gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black shadow-[0_10px_35px_rgba(255,255,255,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white/90"
+                    >
+                        <Plus className="size-4" />
+                        Create Project
+                        <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div

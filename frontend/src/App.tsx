@@ -68,6 +68,16 @@ function App() {
                         />
 
                         <Route
+                            path="/flags"
+                            element={<FeatureFlags />}
+                        />
+
+                        <Route
+                            path="/feature-flags"
+                            element={<FeatureFlags />}
+                        />
+
+                        <Route
                             path="/projects/:projectId/environments/:environmentId/evaluate"
                             element={<EvaluationPlayground />}
                         />

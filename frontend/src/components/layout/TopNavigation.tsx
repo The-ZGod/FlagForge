@@ -118,6 +118,20 @@ export function TopNavigation() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Listen for global open create project event
+    useEffect(() => {
+        const handleOpenCreateProject = () => {
+            setCreateProjectError("");
+            setNewProjectName("");
+            setCreateProjectModalOpen(true);
+        };
+
+        window.addEventListener("flagforge:open-create-project", handleOpenCreateProject);
+        return () => {
+            window.removeEventListener("flagforge:open-create-project", handleOpenCreateProject);
+        };
+    }, []);
+
     // Load projects on mount
     useEffect(() => {
         async function loadAllProjects() {
@@ -261,7 +275,14 @@ export function TopNavigation() {
             localStorage.setItem("flagforge_active_project_id", project.id);
             setNewProjectName("");
             setCreateProjectModalOpen(false);
-            navigate(`/projects/${project.id}`);
+
+            // Notify all listening views
+            window.dispatchEvent(new CustomEvent("flagforge:project-created", { detail: project }));
+
+            // Navigate to the newly created project's workspace if not on dashboard
+            if (location.pathname !== "/dashboard") {
+                navigate(`/projects/${project.id}`);
+            }
         } catch (err) {
             setCreateProjectError(
                 err instanceof Error ? err.message : "Failed to create project"
@@ -306,7 +327,7 @@ export function TopNavigation() {
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}`
             : effectiveProjectId
                 ? `/projects/${effectiveProjectId}`
-                : "/dashboard";
+                : "/flags";
 
     // Dynamic destination for evaluation link
     const evaluationPath =
@@ -314,7 +335,7 @@ export function TopNavigation() {
             ? `/projects/${effectiveProjectId}/environments/${effectiveEnvId}/evaluate`
             : effectiveProjectId
                 ? `/projects/${effectiveProjectId}`
-                : "/dashboard";
+                : "/evaluation";
 
     // Dynamic destination for api-keys link
     const apiKeysPath =
@@ -323,13 +344,16 @@ export function TopNavigation() {
             : "/api-keys";
 
     const isFeatureFlagsActive =
-        (location.pathname.includes("/flags") ||
+        (location.pathname.startsWith("/flags") ||
+            location.pathname.startsWith("/feature-flags") ||
             (location.pathname.includes("/environments/") &&
                 !location.pathname.includes("/evaluate") &&
                 !location.pathname.includes("/api-keys"))) &&
         !location.pathname.includes("/docs");
 
-    const isEvaluationActive = location.pathname.includes("/evaluate");
+    const isEvaluationActive =
+        location.pathname.startsWith("/evaluation") ||
+        location.pathname.includes("/evaluate");
     const isApiKeysActive = location.pathname.includes("/api-keys");
     const isDocsActive = location.pathname.startsWith("/docs");
     const isActivityActive = location.pathname.startsWith("/activity");
