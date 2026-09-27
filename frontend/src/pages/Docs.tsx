@@ -329,71 +329,136 @@ export function Docs() {
     }, []);
 
     const sections = [
-        { id: "quick-start", title: "Quick Start", icon: Sparkles },
-        { id: "core-concepts", title: "Core Concepts", icon: Layers },
-        { id: "sdk-installation", title: "Installation & Setup", icon: Terminal },
-        { id: "sdk-methods", title: "SDK Methods", icon: Code2 },
-        { id: "targeting-and-rollouts", title: "Targeting & Rollouts", icon: Sliders },
-        { id: "evaluation-reasons", title: "Evaluation Reasons", icon: Radio },
-        { id: "runtime-api", title: "Raw HTTP API", icon: Cpu },
-        { id: "code-examples", title: "Integration Examples", icon: FileCode },
+        { id: "quick-start", title: "How It Works", icon: Sparkles },
+        { id: "core-concepts", title: "Before You Start", icon: Layers },
+        { id: "sdk-installation", title: "1. Install SDK", icon: Terminal },
+        { id: "sdk-methods", title: "2. Initialize & Use", icon: Code2 },
+        { id: "targeting-and-rollouts", title: "3. Target Users", icon: Sliders },
+        { id: "evaluation-reasons", title: "4. Understand Results", icon: Radio },
+        { id: "runtime-api", title: "Without the SDK", icon: Cpu },
+        { id: "code-examples", title: "Complete Examples", icon: FileCode },
     ];
 
-    const quickStartSnippet = `import { FlagForge } from "@flagforge/sdk";
+    const quickStartSnippet = `// Step 1: Install the SDK
+// npm install flagforge-sdk
 
-// 1. Initialize FlagForge with your environment runtime API key
+// Step 2: Import the SDK
+import { FlagForge } from "flagforge-sdk";
+
+// Step 3: Create a FlagForge client
 const flagforge = new FlagForge({
-  apiUrl: "https://your-flagforge-instance.com",
-  apiKey: "ff_live_YOUR_ENVIRONMENT_API_KEY"
+  apiUrl: "https://flagforge-paju.onrender.com",
+  apiKey: process.env.FLAGFORGE_API_KEY!
 });
 
-// 2. Evaluate a flag for a user
-const isNewCheckoutEnabled = await flagforge.isEnabled("new_checkout_experience", {
-  userId: "user_10294",
-  attributes: {
-    country: "US",
-    plan: "enterprise"
-  }
+// Step 4: Check a feature flag
+const enabled = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID"
 });
 
-if (isNewCheckoutEnabled) {
-  // Render high-conversion checkout
+if (enabled) {
+  console.log("New checkout is enabled");
 } else {
-  // Fallback to legacy checkout
+  console.log("Use the old checkout");
 }`;
 
     const installSnippets = {
-        npm: `npm install @flagforge/sdk`,
-        pnpm: `pnpm add @flagforge/sdk`,
-        yarn: `yarn add @flagforge/sdk`,
+        npm: `npm install flagforge-sdk`,
+        pnpm: `pnpm add flagforge-sdk`,
+        yarn: `yarn add flagforge-sdk`,
     } as const;
 
     const [packageManager, setPackageManager] =
         useState<keyof typeof installSnippets>("npm");
     const [packageCopied, setPackageCopied] = useState(false);
 
-    const methodsSnippet = `// Full evaluate method returning enabled state & reason
-const result = await flagforge.evaluate("dark_mode_v2", {
-  userId: "usr_44912",
+    const javascriptSetupSnippet = `import { FlagForge } from "flagforge-sdk";
+
+const flagforge = new FlagForge({
+  apiUrl: "https://flagforge-paju.onrender.com",
+  apiKey: process.env.FLAGFORGE_API_KEY
+});
+
+const enabled = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID"
+});
+
+console.log(enabled); // true or false`;
+
+    const typescriptSetupSnippet = `import { FlagForge } from "flagforge-sdk";
+
+const flagforge = new FlagForge({
+  apiUrl: "https://flagforge-paju.onrender.com",
+  apiKey: process.env.FLAGFORGE_API_KEY!
+});
+
+const enabled: boolean = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID"
+});
+
+console.log(enabled); // true or false`;
+
+    const evaluationSnippet = `const result = await flagforge.evaluate("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID",
   attributes: {
-    tier: "beta_tester",
-    platform: "web"
+    country: "US",
+    plan: "pro"
   }
 });
 
-console.log(result.enabled); // boolean (true / false)
-console.log(result.reason);  // "FULL_ROLLOUT" | "PERCENTAGE_ROLLOUT" | etc.
+console.log(result.enabled);
+console.log(result.reason);`;
 
-// Convenience boolean helper
-const isEnabled: boolean = await flagforge.isEnabled("dark_mode_v2", {
-  userId: "usr_44912"
-});`;
+    const environmentSnippet = `# Keep your API key in an environment variable
+FLAGFORGE_API_KEY=ff_live_YOUR_ENVIRONMENT_API_KEY`;
 
-    const rawHttpSnippet = `curl -X POST https://your-flagforge-instance.com/api/evaluation \\
+    const fullExampleSnippet = `import { FlagForge } from "flagforge-sdk";
+
+const flagforge = new FlagForge({
+  apiUrl: "https://flagforge-paju.onrender.com",
+  apiKey: process.env.FLAGFORGE_API_KEY
+});
+
+async function main() {
+  const enabled = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
+    userId: "YOUR_USER_ID",
+    attributes: {
+      country: "US"
+    }
+  });
+
+  if (enabled) {
+    console.log("Show new checkout");
+  } else {
+    console.log("Show existing checkout");
+  }
+}
+
+main();`;
+
+    const methodsSnippet = `// Use this when you only need true / false
+const enabled = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID"
+});
+
+console.log(enabled);
+
+// Use this when you also want to know why
+const result = await flagforge.evaluate("YOUR_FEATURE_FLAG_KEY", {
+  userId: "YOUR_USER_ID",
+  attributes: {
+    country: "US"
+  }
+});
+
+console.log(result.enabled);
+console.log(result.reason);`;
+
+    const rawHttpSnippet = `curl -X POST https://flagforge-paju.onrender.com/api/evaluation \\
   -H "Content-Type: application/json" \\
   -H "X-FlagForge-Key: ff_live_YOUR_ENVIRONMENT_API_KEY" \\
   -d '{
-    "flagKey": "new_checkout_experience",
+    "flagKey": "YOUR_FEATURE_FLAG_KEY",
     "userId": "user_10294",
     "attributes": {
       "country": "US",
@@ -408,11 +473,11 @@ const isEnabled: boolean = await flagforge.isEnabled("dark_mode_v2", {
 }`;
 
     const expressExample = `import express from "express";
-import { FlagForge } from "@flagforge/sdk";
+import { FlagForge } from "flagforge-sdk";
 
 const app = express();
 const flagforge = new FlagForge({
-  apiUrl: process.env.FLAGFORGE_API_URL!,
+  apiUrl: process.env.FLAGFORGE_API_URL || "https://flagforge-paju.onrender.com",
   apiKey: process.env.FLAGFORGE_API_KEY!
 });
 
@@ -420,7 +485,7 @@ app.get("/api/v1/search", async (req, res) => {
   const userId = req.headers["x-user-id"] as string || "anonymous";
   const userPlan = (req.query.plan as string) || "free";
 
-  const useAiSearch = await flagforge.isEnabled("ai_powered_search", {
+  const useAiSearch = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
     userId,
     attributes: { plan: userPlan }
   });
@@ -473,7 +538,7 @@ app.get("/api/v1/search", async (req, res) => {
                             </Badge>
                         </div>
                         <p className="text-sm text-white/45">
-                            Comprehensive guide to integrating FlagForge feature flags, deterministic percentage rollouts, targeting rules, and SDKs into your backend applications.
+                            Comprehensive guide to integrating FlagForge feature flags, deterministic percentage rollouts, targeting rules, and the published flagforge-sdk into your backend applications.
                         </p>
                     </div>
 
@@ -570,6 +635,26 @@ app.get("/api/v1/search", async (req, res) => {
                             </p>
 
                             <CodeBlock code={quickStartSnippet} language="typescript" />
+
+                            <div className="docs-card relative overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] p-4 backdrop-blur-xl">
+                                <h3 className="text-sm font-semibold text-white">Where do these values come from?</h3>
+                                <div className="mt-2 space-y-2 text-xs leading-relaxed text-white/45">
+                                    <p>
+                                        <code className="font-mono text-white">YOUR_FEATURE_FLAG_KEY</code>:
+                                        copy the <strong className="text-white/70">Flag Key</strong> from the feature flag you created in the FlagForge dashboard.
+                                    </p>
+                                    <p>
+                                        <code className="font-mono text-white">YOUR_USER_ID</code>:
+                                        use a stable ID for the user you want to evaluate, such as your application's user ID.
+                                        It does not need to be created inside FlagForge.
+                                    </p>
+                                    <p>
+                                        <code className="font-mono text-white">FLAGFORGE_API_KEY</code>:
+                                        copy the API key for the environment you want your application to use from
+                                        <strong className="text-white/70"> API Keys</strong> in FlagForge.
+                                    </p>
+                                </div>
+                            </div>
                         </section>
 
                         {/* Section: Core Concepts */}
@@ -628,7 +713,7 @@ app.get("/api/v1/search", async (req, res) => {
                                             <span>Environment API Keys</span>
                                         </div>
                                         <p className="text-xs text-white/45 leading-relaxed">
-                                            Read-only credentials scoped to specific deployment environments (Development, Staging, Production) for runtime evaluation isolation.
+                                            Environment-scoped runtime credentials used to authenticate evaluation requests and isolate flag evaluation by environment.
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -644,11 +729,25 @@ app.get("/api/v1/search", async (req, res) => {
                                 <span>Package Manager</span>
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                SDK Installation & Setup
+                                1. Install the SDK
                             </h2>
-                            <p className="text-sm text-white/45">
-                                Install the official TypeScript/Node.js SDK into your server, API gateway, or worker process.
+                            <p className="text-sm text-white/45 leading-relaxed">
+                                Add FlagForge to your Node.js project. Choose the package manager you already use.
+                                The SDK is installed once and then imported into your server-side code.
                             </p>
+                            <p className="text-xs text-white/35">
+                                Package: <code className="font-mono text-white">flagforge-sdk@1.0.0</code>
+                            </p>
+
+                            <div className="docs-card relative overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] p-4 space-y-3 backdrop-blur-xl">
+                                <h3 className="text-sm font-semibold text-white">Before you initialize the SDK</h3>
+                                <ol className="space-y-2 text-xs text-white/45 leading-relaxed">
+                                    <li><span className="font-semibold text-white">1.</span> Open FlagForge and create/select the environment you want your application to use.</li>
+                                    <li><span className="font-semibold text-white">2.</span> Get that environment's API key from the API Keys page.</li>
+                                    <li><span className="font-semibold text-white">3.</span> Store the key in your server environment. Do not hard-code it in frontend/browser code.</li>
+                                </ol>
+                                <CodeBlock code={environmentSnippet} language="bash" />
+                            </div>
 
                             <div className="overflow-hidden rounded-2xl border border-white/[0.10] bg-[#050505]/90 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
                                 <div className="flex flex-col border-b border-white/[0.08] bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between">
@@ -662,8 +761,8 @@ app.get("/api/v1/search", async (req, res) => {
                                                     type="button"
                                                     onClick={() => setPackageManager(manager)}
                                                     className={`relative rounded-lg px-3 py-2 font-mono text-[11px] font-semibold transition-all duration-300 ${isActive
-                                                            ? "bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.10)]"
-                                                            : "text-white/40 hover:bg-white/[0.06] hover:text-white/80"
+                                                        ? "bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.10)]"
+                                                        : "text-white/40 hover:bg-white/[0.06] hover:text-white/80"
                                                         }`}
                                                 >
                                                     {manager}
@@ -734,8 +833,12 @@ app.get("/api/v1/search", async (req, res) => {
                                 <span>TypeScript SDK Reference</span>
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                SDK Methods & Signatures
+                                2. Initialize & Use
                             </h2>
+                            <p className="text-sm text-white/45 leading-relaxed">
+                                After installation, create one FlagForge client with your environment API key.
+                                You can use the same client throughout your backend application.
+                            </p>
 
                             <div className="space-y-3 text-sm text-white/45">
                                 <div className="docs-card relative overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] p-4 space-y-2 backdrop-blur-xl transition-all duration-500 hover:border-white/[0.18] hover:bg-white/[0.04] before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(220px_circle_at_var(--mx)_var(--my),rgba(255,255,255,0.07),transparent_70%)]">
@@ -757,7 +860,27 @@ app.get("/api/v1/search", async (req, res) => {
                                 </div>
                             </div>
 
-                            <CodeBlock code={methodsSnippet} language="typescript" />
+                            <div className="space-y-5">
+                                <div>
+                                    <h3 className="mb-2 text-sm font-semibold text-white">JavaScript</h3>
+                                    <CodeBlock code={javascriptSetupSnippet} language="javascript" />
+                                </div>
+                                <div>
+                                    <h3 className="mb-2 text-sm font-semibold text-white">TypeScript</h3>
+                                    <CodeBlock code={typescriptSetupSnippet} language="typescript" />
+                                </div>
+                            </div>
+
+                            <div className="docs-card relative overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] p-4 space-y-2 backdrop-blur-xl">
+                                <h3 className="text-sm font-semibold text-white">Which method should I use?</h3>
+                                <p className="text-xs text-white/45 leading-relaxed">
+                                    Use <code className="font-mono text-white">isEnabled()</code> when your application
+                                    only needs a true/false decision. Use <code className="font-mono text-white">evaluate()</code>
+                                    when you also want the evaluation reason.
+                                </p>
+                            </div>
+
+                            <CodeBlock code={evaluationSnippet} language="javascript" />
                         </section>
 
                         {/* Section: Targeting & Rollouts */}
@@ -773,12 +896,12 @@ app.get("/api/v1/search", async (req, res) => {
                             </div>
 
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                Targeting & Rollouts
+                                3. Target Users
                             </h2>
 
                             <p className="text-sm text-white/45 leading-relaxed">
-                                Configure deterministic percentage rollouts and targeting rules to control
-                                which users receive a feature without changing application code.
+                                Once the basic SDK integration works, use FlagForge to control who receives a feature.
+                                You can enable a flag for a percentage of users and add attribute-based targeting rules.
                             </p>
 
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -806,10 +929,13 @@ app.get("/api/v1/search", async (req, res) => {
                             <CodeBlock
                                 code={`{
   "rolloutPercentage": 25,
-  "targeting": {
-    "country": "US",
-    "plan": "enterprise"
-  }
+  "rules": [
+    {
+      "attribute": "country",
+      "operator": "EQUALS",
+      "value": "US"
+    }
+  ]
 }`}
                                 language="json"
                             />
@@ -824,10 +950,11 @@ app.get("/api/v1/search", async (req, res) => {
                                 <span>Evaluation Engine</span>
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                Evaluation Reasons Reference
+                                4. Understand the Result
                             </h2>
-                            <p className="text-sm text-white/45">
-                                The evaluation engine returns a deterministic decision reason for every evaluation request:
+                            <p className="text-sm text-white/45 leading-relaxed">
+                                Every evaluation returns a decision. When you use <code className="font-mono text-white">evaluate()</code>,
+                                FlagForge also tells you why the user was enabled or disabled.
                             </p>
 
                             <div className="docs-card overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] divide-y divide-white/[0.06] backdrop-blur-xl">
@@ -895,10 +1022,11 @@ app.get("/api/v1/search", async (req, res) => {
                                 <span>HTTP REST API</span>
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                Raw Runtime Evaluation API
+                                Without the SDK: Raw HTTP API
                             </h2>
-                            <p className="text-sm text-white/45">
-                                If you are not using Node.js/TypeScript (e.g., Python, Go, Rust, Ruby), call the runtime evaluation endpoint directly using the <code className="font-mono text-xs bg-white/[0.06] px-1.5 py-0.5 rounded text-white">X-FlagForge-Key</code> header:
+                            <p className="text-sm text-white/45 leading-relaxed">
+                                You do not need the JavaScript/TypeScript SDK to use FlagForge.
+                                Any backend that can make an HTTP request can call the evaluation endpoint directly.
                             </p>
 
                             <CodeBlock code={rawHttpSnippet} language="bash" />
@@ -913,12 +1041,41 @@ app.get("/api/v1/search", async (req, res) => {
                                 <span>Practical Recipes</span>
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
-                                Integration Examples
+                                Complete Examples
                             </h2>
+                            <p className="text-sm text-white/45 leading-relaxed">
+                                These examples show the complete flow: install → initialize → evaluate → use the result.
+                                Copy the version that matches your project.
+                            </p>
 
                             <div className="space-y-2">
-                                <h3 className="text-sm font-semibold text-white">Express.js Route Protection</h3>
+                                <h3 className="text-sm font-semibold text-white">JavaScript — simple backend example</h3>
+                                <CodeBlock code={fullExampleSnippet} language="javascript" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-sm font-semibold text-white">TypeScript — Express example</h3>
                                 <CodeBlock code={expressExample} language="typescript" />
+                            </div>
+                        </section>
+
+                        <section className="docs-section space-y-4">
+                            <div className="docs-card relative overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.025] p-5 backdrop-blur-xl">
+                                <h3 className="text-sm font-semibold text-white">The whole integration in 5 steps</h3>
+                                <div className="mt-3 grid gap-2 sm:grid-cols-5">
+                                    {[
+                                        "Install flagforge-sdk",
+                                        "Get an environment API key",
+                                        "Initialize FlagForge",
+                                        "Call isEnabled() or evaluate()",
+                                        "Use the result in your app"
+                                    ].map((step, index) => (
+                                        <div key={step} className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+                                            <div className="mb-1 font-mono text-[10px] text-white/30">0{index + 1}</div>
+                                            <p className="text-xs leading-relaxed text-white/55">{step}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </section>
                     </main>
