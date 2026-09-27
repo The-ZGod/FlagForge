@@ -1,5 +1,5 @@
 {
-  "name": "@flagforge/sdk",
+  "name": "flagforge-sdk",
   "version": "1.0.0",
   "description": "TypeScript SDK for the FlagForge feature flag platform",
   "main": "dist/index.js",
@@ -15,6 +15,18 @@
   ],
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/The-ZGod/FlagForge.git",
+    "directory": "sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/The-ZGod/FlagForge/issues"
+  },
+  "homepage": "https://github.com/The-ZGod/FlagForge#readme",
   "devDependencies": {
     "typescript": "^7.0.2"
   }
