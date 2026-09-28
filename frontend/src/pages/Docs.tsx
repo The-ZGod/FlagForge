@@ -436,23 +436,6 @@ async function main() {
 
 main();`;
 
-    const methodsSnippet = `// Use this when you only need true / false
-const enabled = await flagforge.isEnabled("YOUR_FEATURE_FLAG_KEY", {
-  userId: "YOUR_USER_ID"
-});
-
-console.log(enabled);
-
-// Use this when you also want to know why
-const result = await flagforge.evaluate("YOUR_FEATURE_FLAG_KEY", {
-  userId: "YOUR_USER_ID",
-  attributes: {
-    country: "US"
-  }
-});
-
-console.log(result.enabled);
-console.log(result.reason);`;
 
     const rawHttpSnippet = `curl -X POST https://flagforge-paju.onrender.com/api/evaluation \\
   -H "Content-Type: application/json" \\
